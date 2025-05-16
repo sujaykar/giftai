@@ -5,7 +5,10 @@ import {
   Product, InsertProduct,
   Recommendation, InsertRecommendation,
   Occasion, InsertOccasion,
-  NotificationLog, InsertNotificationLog
+  NotificationLog, InsertNotificationLog,
+  ProductTag, InsertProductTag,
+  PurchaseHistory, InsertPurchaseHistory,
+  UserSimilarity, InsertUserSimilarity
 } from "@shared/schema";
 
 export interface IStorage {
@@ -55,6 +58,45 @@ export interface IStorage {
   // Notification methods
   createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
   getNotificationLogsByUserId(userId: number): Promise<NotificationLog[]>;
+  
+  // Product Tags methods
+  getProductTags(productId: number): Promise<ProductTag[]>;
+  getProductTagsByType(productId: number, tagType: string): Promise<ProductTag[]>;
+  createProductTag(tag: InsertProductTag): Promise<ProductTag>;
+  createProductTags(tags: InsertProductTag[]): Promise<ProductTag[]>;
+  updateProductTag(id: number, updates: Partial<ProductTag>): Promise<ProductTag | undefined>;
+  deleteProductTag(id: number): Promise<boolean>;
+  autoGenerateProductTags(productId: number): Promise<ProductTag[]>;
+  
+  // Purchase History methods
+  getPurchaseHistory(userId: number): Promise<PurchaseHistory[]>;
+  getPurchaseHistoryByProduct(productId: number): Promise<PurchaseHistory[]>;
+  getPurchaseHistoryByRecipient(recipientId: number): Promise<PurchaseHistory[]>;
+  createPurchaseRecord(purchase: InsertPurchaseHistory): Promise<PurchaseHistory>;
+  updatePurchaseRecord(id: number, updates: Partial<PurchaseHistory>): Promise<PurchaseHistory | undefined>;
+  getProductRecommendationsBasedOnPurchaseHistory(userId: number): Promise<Product[]>;
+  
+  // User Similarity methods
+  getSimilarUsers(userId: number, limit?: number): Promise<UserSimilarity[]>;
+  updateUserSimilarity(userId: number, similarUserId: number, score: number): Promise<UserSimilarity>;
+  calculateUserSimilarities(userId: number): Promise<UserSimilarity[]>;
+  getCollaborativeFilteringRecommendations(userId: number): Promise<Product[]>;
+  
+  // Hybrid Recommendation methods
+  getHybridRecommendations(
+    userId: number, 
+    recipientId: number, 
+    options?: {
+      limit?: number,
+      includeAI?: boolean,
+      includeCollaborative?: boolean,
+      includeContentBased?: boolean,
+      mood?: string,
+      occasion?: string,
+      minPrice?: number,
+      maxPrice?: number
+    }
+  ): Promise<(Recommendation & { product: Product })[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -65,6 +107,9 @@ export class MemStorage implements IStorage {
   private recommendations: Map<number, Recommendation>;
   private occasions: Map<number, Occasion>;
   private notificationLogs: Map<number, NotificationLog>;
+  private productTags: Map<number, ProductTag>;
+  private purchaseHistory: Map<number, PurchaseHistory>;
+  private userSimilarity: Map<number, UserSimilarity>;
 
   private currentIds: {
     users: number;
@@ -74,6 +119,9 @@ export class MemStorage implements IStorage {
     recommendations: number;
     occasions: number;
     notificationLogs: number;
+    productTags: number;
+    purchaseHistory: number;
+    userSimilarity: number;
   };
 
   constructor() {
