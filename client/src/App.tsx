@@ -42,6 +42,32 @@ function App() {
     categories: [] as string[],
     occasions: [] as string[]
   });
+  const [showPersonalizationModal, setShowPersonalizationModal] = useState<number | null>(null);
+  const [priceComparisonProduct, setPriceComparisonProduct] = useState<any>(null);
+  const [sharableProduct, setSharableProduct] = useState<any>(null);
+  const [personalizationOptions, setPersonalizationOptions] = useState({
+    wrapping: {
+      selected: "red",
+      options: [
+        { id: "red", name: "Red Gift Wrap", image: "https://images.unsplash.com/photo-1511448939392-876c8696034a?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "blue", name: "Blue Gift Wrap", image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "green", name: "Green Gift Wrap", image: "https://images.unsplash.com/photo-1512909006721-3d6018887383?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "gold", name: "Gold Gift Wrap", image: "https://images.unsplash.com/photo-1544281153-f9ab8847c01a?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "silver", name: "Silver Gift Wrap", image: "https://images.unsplash.com/photo-1512909312272-1eec03131f99?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" }
+      ]
+    },
+    card: {
+      selected: "birthday",
+      options: [
+        { id: "birthday", name: "Birthday Card", image: "https://images.unsplash.com/photo-1547568484-8c6cd6odo12q?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "anniversary", name: "Anniversary Card", image: "https://images.unsplash.com/photo-1546032996-6098e8dbfcb3?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "graduation", name: "Graduation Card", image: "https://images.unsplash.com/photo-1541877944-ac82a216a4d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "congratulations", name: "Congratulations Card", image: "https://images.unsplash.com/photo-1497005367839-6e852de72767?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" },
+        { id: "thankyou", name: "Thank You Card", image: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80" }
+      ]
+    },
+    message: ""
+  });
 
   const handleLogin = () => {
     setLoggedIn(true);
@@ -380,9 +406,288 @@ function App() {
     );
   }
 
+  // Handle personalization changes
+  const handleWrappingSelect = (wrappingId: string) => {
+    setPersonalizationOptions(prev => ({
+      ...prev, 
+      wrapping: {
+        ...prev.wrapping,
+        selected: wrappingId
+      }
+    }));
+  };
+
+  const handleCardSelect = (cardId: string) => {
+    setPersonalizationOptions(prev => ({
+      ...prev, 
+      card: {
+        ...prev.card,
+        selected: cardId
+      }
+    }));
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPersonalizationOptions(prev => ({
+      ...prev,
+      message: e.target.value
+    }));
+  };
+
+  const savePersonalization = () => {
+    // Here you would typically save the personalization data to your database
+    // For now we'll just close the modal
+    setShowPersonalizationModal(null);
+  };
+
   // Main app after login
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Social Sharing Modal */}
+      {sharableProduct !== null && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Share This Gift</h2>
+                <button 
+                  onClick={() => setSharableProduct(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
+                  <img 
+                    src={sharableProduct?.image} 
+                    alt={sharableProduct?.title} 
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">{sharableProduct?.title}</h3>
+                  <p className="text-sm text-pink-500">${sharableProduct?.price.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              {/* Sharing options */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Share via:</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  <button className="flex flex-col items-center gap-1 p-3 rounded-md hover:bg-blue-50">
+                    <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs">Facebook</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1 p-3 rounded-md hover:bg-blue-50">
+                    <div className="h-10 w-10 rounded-full bg-sky-500 flex items-center justify-center text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs">Twitter</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1 p-3 rounded-md hover:bg-blue-50">
+                    <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs">WhatsApp</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1 p-3 rounded-md hover:bg-blue-50">
+                    <div className="h-10 w-10 rounded-full bg-gray-500 flex items-center justify-center text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs">Instagram</span>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Copy link */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Or copy this link:</h3>
+                <div className="flex">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={`https://giftai.example.com/gifts/${sharableProduct?.id}`}
+                    className="flex-grow border border-gray-300 rounded-l-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://giftai.example.com/gifts/${sharableProduct?.id}`);
+                      alert("Link copied to clipboard!");
+                    }}
+                    className="bg-indigo-500 text-white px-4 py-2 rounded-r-md text-sm font-medium hover:bg-indigo-600"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Personalization Modal */}
+      {showPersonalizationModal !== null && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Personalize Your Gift</h2>
+                <button 
+                  onClick={() => setShowPersonalizationModal(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Gift Wrapping Options */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Gift Wrapping</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  {personalizationOptions.wrapping.options.map((option) => (
+                    <div 
+                      key={option.id}
+                      onClick={() => handleWrappingSelect(option.id)}
+                      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                        personalizationOptions.wrapping.selected === option.id 
+                          ? "border-pink-500 shadow-md" 
+                          : "border-gray-200 hover:border-pink-200"
+                      }`}
+                    >
+                      <div className="aspect-square bg-gray-100">
+                        <img 
+                          src={option.image} 
+                          alt={option.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="p-2 text-center">
+                        <p className="text-sm font-medium text-gray-900">{option.name}</p>
+                        <p className="text-xs text-gray-500">+$4.99</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Gift Card Options */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Gift Card</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  {personalizationOptions.card.options.map((option) => (
+                    <div 
+                      key={option.id}
+                      onClick={() => handleCardSelect(option.id)}
+                      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                        personalizationOptions.card.selected === option.id 
+                          ? "border-pink-500 shadow-md" 
+                          : "border-gray-200 hover:border-pink-200"
+                      }`}
+                    >
+                      <div className="aspect-square bg-gray-100">
+                        <img 
+                          src={option.image} 
+                          alt={option.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="p-2 text-center">
+                        <p className="text-sm font-medium text-gray-900">{option.name}</p>
+                        <p className="text-xs text-gray-500">+$3.99</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Personal Message */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Message</h3>
+                <textarea
+                  value={personalizationOptions.message}
+                  onChange={handleMessageChange}
+                  placeholder="Write a personal message to include with your gift..."
+                  className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+              </div>
+              
+              {/* Preview */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div className="md:w-1/2">
+                    <p className="text-sm text-gray-600 mb-2">Selected wrapping:</p>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 overflow-hidden rounded-md">
+                        <img 
+                          src={personalizationOptions.wrapping.options.find(o => o.id === personalizationOptions.wrapping.selected)?.image}
+                          alt="Selected wrapping"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="font-medium">{personalizationOptions.wrapping.options.find(o => o.id === personalizationOptions.wrapping.selected)?.name}</span>
+                    </div>
+                  </div>
+                  <div className="md:w-1/2">
+                    <p className="text-sm text-gray-600 mb-2">Selected card:</p>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 overflow-hidden rounded-md">
+                        <img 
+                          src={personalizationOptions.card.options.find(o => o.id === personalizationOptions.card.selected)?.image}
+                          alt="Selected card"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="font-medium">{personalizationOptions.card.options.find(o => o.id === personalizationOptions.card.selected)?.name}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {personalizationOptions.message && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">Your message:</p>
+                    <div className="bg-white p-3 rounded-md border border-gray-200 text-sm italic">
+                      {personalizationOptions.message}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="pt-4 border-t border-gray-200 flex justify-end gap-2">
+                <button 
+                  onClick={() => setShowPersonalizationModal(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 text-sm font-medium hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={savePersonalization}
+                  className="px-4 py-2 bg-pink-500 rounded-md text-white text-sm font-medium hover:bg-pink-600"
+                >
+                  Save Personalization
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto flex items-center justify-between p-4">
@@ -1361,7 +1666,70 @@ function App() {
                   {/* Content */}
                   <div className="p-4">
                     <div className="mb-1 text-lg font-medium text-gray-900">{recommendation.title}</div>
-                    <div className="mb-3 text-pink-500 font-medium">${recommendation.price.toFixed(2)}</div>
+                    
+                    {/* Price with comparison */}
+                    <div className="mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="text-pink-500 font-medium">${recommendation.price.toFixed(2)}</div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPriceComparisonProduct(recommendation);
+                          }}
+                          className="text-xs text-indigo-600 hover:text-indigo-700 hover:underline"
+                        >
+                          Compare prices
+                        </button>
+                      </div>
+                      
+                      {/* Price comparison pop-up */}
+                      {priceComparisonProduct?.id === recommendation.id && (
+                        <div className="relative mt-2">
+                          <div className="absolute z-10 left-0 right-0 bg-white rounded-md border border-gray-200 p-3 shadow-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="text-sm font-semibold">Price Comparison</h4>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPriceComparisonProduct(null);
+                                }}
+                                className="text-gray-500 hover:text-gray-700"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                            
+                            <div className="space-y-2 text-xs">
+                              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">GIFT AI</span>
+                                  <span className="text-xs text-green-600">Best Price!</span>
+                                </div>
+                                <span className="font-medium">${recommendation.price.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                                <span>Amazon</span>
+                                <span>${(recommendation.price * 1.05).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                                <span>Walmart</span>
+                                <span>${(recommendation.price * 1.02).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                                <span>Target</span>
+                                <span>${(recommendation.price * 1.08).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span>Best Buy</span>
+                                <span>${(recommendation.price * 1.10).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     
                     {/* Details */}
                     <div className="space-y-1 text-sm">
@@ -1392,7 +1760,22 @@ function App() {
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button 
+                        onClick={() => setShowPersonalizationModal(recommendation.id)}
+                        className="rounded-md bg-pink-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-pink-600"
+                      >
+                        Personalize
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSharableProduct(recommendation);
+                        }}
+                        className="rounded-md bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-600"
+                      >
+                        Share
+                      </button>
                       <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200">
                         View Details
                       </button>
