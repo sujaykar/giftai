@@ -1,116 +1,118 @@
-import { ReactNode } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Tags, Zap, LogOut, User } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { 
+  LayoutDashboard, 
+  Tag, 
+  Sparkles, 
+  Menu, 
+  ChevronLeft, 
+  LogOut, 
+  User,
+  Settings
+} from 'lucide-react';
 
 interface LayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  const [expanded, setExpanded] = useState(true);
   const location = useLocation();
   const { user, logout } = useAuth();
   
-  const navigation = [
-    {
-      name: 'Dashboard',
-      href: '/',
-      icon: LayoutDashboard,
-      current: location.pathname === '/'
-    },
-    {
-      name: 'Product Tags',
-      href: '/product-tags',
-      icon: Tags,
-      current: location.pathname === '/product-tags'
-    },
-    {
-      name: 'Auto Tagging',
-      href: '/auto-tagging',
-      icon: Zap,
-      current: location.pathname === '/auto-tagging'
-    }
+  const handleLogout = async () => {
+    await logout();
+  };
+  
+  const toggleSidebar = () => {
+    setExpanded(!expanded);
+  };
+  
+  const navItems = [
+    { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
+    { name: 'Product Tags', path: '/product-tags', icon: <Tag size={20} /> },
+    { name: 'Auto Tagging', path: '/auto-tagging', icon: <Sparkles size={20} /> },
   ];
   
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:w-64 bg-white border-r">
-        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4 mb-4">
-            <h1 className="text-xl font-bold">Gift AI Admin</h1>
-          </div>
-          
-          <div className="mt-5 flex-grow flex flex-col">
-            <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
+      <div className={`bg-white transition-all duration-300 shadow-lg flex flex-col ${expanded ? 'w-64' : 'w-20'}`}>
+        {/* Header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b">
+          {expanded && <h1 className="text-xl font-bold text-primary">GIFT AI Admin</h1>}
+          <button onClick={toggleSidebar} className="p-2 rounded-md hover:bg-gray-100">
+            {expanded ? <ChevronLeft size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+        
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <ul>
+            {navItems.map((item) => (
+              <li key={item.path} className="mb-1">
                 <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    item.current
-                      ? 'bg-primary text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                  to={item.path}
+                  className={`flex items-center ${expanded ? 'px-6' : 'justify-center px-2'} py-3 ${
+                    location.pathname === item.path ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <item.icon
-                    className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                      item.current ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
-                  />
-                  {item.name}
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  {expanded && <span className="ml-3">{item.name}</span>}
                 </Link>
-              ))}
-            </nav>
-          </div>
-          
+              </li>
+            ))}
+          </ul>
+        </nav>
+        
+        {/* Footer */}
+        <div className="border-t py-4">
           {user && (
-            <div className="px-3 pt-3 mt-4 border-t">
-              <div className="flex items-center mb-3">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <User className="h-5 w-5" />
-                  </div>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-700">{user.firstName} {user.lastName}</p>
-                  <p className="text-xs font-medium text-gray-500">{user.email}</p>
-                </div>
+            <div className={`flex items-center ${expanded ? 'px-6' : 'justify-center px-2'} mb-4`}>
+              <div className="flex-shrink-0">
+                <User size={20} className="text-gray-500" />
               </div>
-              <button
-                onClick={logout}
-                className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
-              >
-                <LogOut className="mr-3 h-5 w-5 text-gray-400" />
-                Sign out
-              </button>
+              {expanded && (
+                <div className="ml-3">
+                  <p className="text-sm font-medium">{`${user.firstName} ${user.lastName}`}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      </div>
-      
-      {/* Mobile menu */}
-      <div className="md:hidden bg-white border-b px-4 py-2 flex items-center justify-between">
-        <h1 className="text-lg font-bold">Gift AI Admin</h1>
-        <div className="flex items-center space-x-4">
-          {navigation.map((item) => (
+          
+          <div className="flex flex-col">
             <Link
-              key={item.name}
-              to={item.href}
-              className={`p-1 rounded-md ${
-                item.current ? 'bg-primary text-white' : 'text-gray-500'
-              }`}
-              aria-label={item.name}
+              to="/settings"
+              className={`flex items-center ${expanded ? 'px-6' : 'justify-center px-2'} py-3 text-gray-700 hover:bg-gray-100`}
             >
-              <item.icon className="h-6 w-6" />
+              <Settings size={20} />
+              {expanded && <span className="ml-3">Settings</span>}
             </Link>
-          ))}
+            
+            <button
+              onClick={handleLogout}
+              className={`flex items-center ${expanded ? 'px-6' : 'justify-center px-2'} py-3 text-gray-700 hover:bg-gray-100`}
+            >
+              <LogOut size={20} />
+              {expanded && <span className="ml-3">Logout</span>}
+            </button>
+          </div>
         </div>
       </div>
       
-      {/* Main content */}
-      <div className="md:pl-64 flex flex-col flex-1">
-        <main className="flex-1 p-6">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="bg-white h-16 border-b flex items-center justify-between px-6">
+          <h2 className="text-xl font-medium">
+            {navItems.find(item => item.path === location.pathname)?.name || 'Admin Panel'}
+          </h2>
+        </header>
+        
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
           {children}
         </main>
       </div>

@@ -1,22 +1,16 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { AlertCircle, LogIn } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login, error } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      return;
-    }
-    
     setIsLoading(true);
     
     try {
@@ -30,82 +24,92 @@ const Login = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <div className="m-auto w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold">Gift AI Admin</h1>
-          <p className="text-gray-600 mt-2">Sign in to access the administrative dashboard</p>
-        </div>
-        
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-            <div className="flex">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              <span>{error}</span>
+    <div className="flex min-h-screen bg-gray-50">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-md">
+          <div className="text-center">
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Admin Login
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Enter your credentials to access the admin panel
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email address
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-r-transparent rounded-full"></div>
+                        Signing in...
+                      </div>
+                    ) : (
+                      'Sign in'
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="admin@example.com"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">Hint: Use admin@example.com</p>
-          </div>
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="••••••••"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">Hint: Use password123</p>
-          </div>
-          
-          <button
-            type="submit"
-            disabled={isLoading || !email || !password}
-            className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-              (isLoading || !email || !password) ? 'opacity-70 cursor-not-allowed' : ''
-            }`}
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Signing in...
-              </>
-            ) : (
-              <>
-                <LogIn className="h-4 w-4 mr-2" />
-                Sign in
-              </>
-            )}
-          </button>
-        </form>
-        
-        <div className="mt-8 text-center text-xs text-gray-500">
-          <p>This is a demo administrative interface for Gift AI.</p>
-          <p className="mt-1">The application simulates a management dashboard for product tagging and AI recommendations.</p>
+        </div>
+      </div>
+      
+      <div className="hidden lg:block relative flex-1 bg-primary">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary to-indigo-800 opacity-90"></div>
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-12">
+          <h1 className="text-4xl font-bold mb-6">GIFT AI Admin</h1>
+          <p className="text-xl max-w-md text-center">
+            Manage product tags, recommendation engines, and platform analytics
+          </p>
         </div>
       </div>
     </div>

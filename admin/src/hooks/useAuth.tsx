@@ -1,11 +1,12 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState, useCallback, createContext, useContext, ReactNode } from 'react';
 import axios from 'axios';
 
+// Types
 interface User {
   id: number;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
   role: string;
 }
 
@@ -18,114 +19,68 @@ interface AuthContextType {
   checkAuth: () => Promise<boolean>;
 }
 
-// Create the authentication context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// Provider component that wraps your app and provides the auth context
-export function AuthProvider({ children }: { children: ReactNode }) {
+// Provider component
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Check if the user is logged in when the app loads
-  useEffect(() => {
-    checkAuth().finally(() => setIsLoading(false));
-  }, []);
-
-  // Function to check if the user is authenticated
-  const checkAuth = async (): Promise<boolean> => {
-    try {
-      // For demo purposes, we're checking local storage
-      // In a real implementation, this would validate the session with the server
-      const storedUser = localStorage.getItem('adminUser');
-      
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      return false;
-    }
-  };
-
-  // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       setError(null);
-      
-      // For demo purposes, we're hardcoding a mock login
-      // In a real implementation, this would validate credentials with the API
-      if (email === 'admin@example.com' && password === 'password123') {
-        const mockUser = {
-          id: 1,
-          firstName: 'Admin',
-          lastName: 'User',
-          email: 'admin@example.com',
-          role: 'admin'
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('adminUser', JSON.stringify(mockUser));
-        return true;
-      } else {
-        setError('Invalid email or password');
-        return false;
-      }
-      
-      // Real implementation would look like:
-      // const response = await axios.post('/api/admin/login', { email, password });
-      // setUser(response.data.user);
-      // localStorage.setItem('token', response.data.token);
-      // localStorage.setItem('adminUser', JSON.stringify(response.data.user));
-      // return true;
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Login failed');
+      const response = await axios.post('/api/admin/auth/login', { email, password });
+      setUser(response.data.user);
+      return true;
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed');
       return false;
     }
-  };
+  }, []);
 
-  // Logout function
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
-      // For demo purposes, we're just removing from local storage
-      // In a real implementation, this would call the API to invalidate the session
-      localStorage.removeItem('adminUser');
+      await axios.post('/api/admin/auth/logout');
       setUser(null);
-      
-      // Real implementation would also do:
-      // await axios.post('/api/admin/logout');
-      // localStorage.removeItem('token');
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (err) {
+      console.error('Logout failed', err);
     }
-  };
+  }, []);
 
-  // Context value
+  const checkAuth = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await axios.get('/api/admin/auth/user');
+      if (response.data) {
+        setUser(response.data);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      setUser(null);
+      return false;
+    }
+  }, []);
+
   const value = {
     user,
     isAuthenticated: !!user,
     error,
     login,
     logout,
-    checkAuth
+    checkAuth,
   };
 
-  // Return the auth context provider
-  return (
-    <AuthContext.Provider value={value}>
-      {!isLoading && children}
-    </AuthContext.Provider>
-  );
-}
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
-// Hook for components to get the auth context
+// Hook for easy context use
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }
+
+export default useAuth;

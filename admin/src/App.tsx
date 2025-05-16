@@ -1,47 +1,43 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-// Pages
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import Layout from './components/layout';
 import Dashboard from './pages/dashboard';
-import Login from './pages/login';
 import ProductTags from './pages/product-tags';
 import AutoTagging from './pages/auto-tagging';
+import Login from './pages/login';
 
-// Components
-import Layout from './components/layout';
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, checkAuth } = useAuth();
+  const [isChecking, setIsChecking] = useState(true);
 
-// Auth context
-import { AuthProvider, useAuth } from './hooks/useAuth';
+  useEffect(() => {
+    const verifyAuth = async () => {
+      await checkAuth();
+      setIsChecking(false);
+    };
+    
+    verifyAuth();
+  }, [checkAuth]);
 
-// Interface for protected routes
-type ProtectedRouteProps = {
-  children: React.ReactNode
-}
+  if (isChecking) {
+    return <div className="flex h-screen items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>;
+  }
+  
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
 
 function App() {
-  // Protected route component
-  const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { user, loading } = useAuth();
-    
-    if (loading) {
-      return <div className="flex justify-center items-center h-screen">Loading...</div>;
-    }
-    
-    if (!user) {
-      return <Navigate to="/admin/login" />;
-    }
-    
-    return <>{children}</>;
-  };
-
   return (
     <AuthProvider>
-      <Router>
+      <BrowserRouter>
         <Routes>
-          <Route path="/admin/login" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           
-          <Route path="/admin" element={
+          <Route path="/" element={
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
@@ -49,7 +45,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/admin/product-tags" element={
+          <Route path="/product-tags" element={
             <ProtectedRoute>
               <Layout>
                 <ProductTags />
@@ -57,7 +53,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/admin/auto-tagging" element={
+          <Route path="/auto-tagging" element={
             <ProtectedRoute>
               <Layout>
                 <AutoTagging />
@@ -65,10 +61,9 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Redirect root to admin dashboard */}
-          <Route path="/admin/*" element={<Navigate to="/admin" />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-      </Router>
+      </BrowserRouter>
     </AuthProvider>
   );
 }
