@@ -1727,6 +1727,73 @@ function App() {
               </div>
             </div>
             
+            {/* AI-Powered Recommendations */}
+            {aiRecommendations.length > 0 && (
+              <div className="mb-8">
+                <div className="mb-4 flex items-center">
+                  <h2 className="text-xl font-bold text-gray-900">AI-Powered Suggestions</h2>
+                  <span className="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                    <Sparkles className="mr-1 h-3 w-3" />
+                    AI Generated
+                  </span>
+                </div>
+                
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {aiRecommendations.map((recommendation, index) => (
+                    <div key={index} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
+                      <div className="relative aspect-video bg-gray-100">
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                          <Gift className="h-12 w-12" />
+                        </div>
+                      </div>
+                      
+                      <div className="p-4">
+                        <div className="mb-2 flex items-start justify-between">
+                          <h3 className="font-medium text-gray-900">{recommendation.product.name}</h3>
+                          <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            ${parseFloat(recommendation.product.price).toFixed(2)}
+                          </span>
+                        </div>
+                        
+                        <p className="mb-3 line-clamp-3 text-sm text-gray-600">
+                          {recommendation.reasonText || recommendation.product.description}
+                        </p>
+                        
+                        <div className="flex items-center text-xs text-gray-500 mb-3">
+                          <span className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                            {recommendation.relationshipContext}
+                          </span>
+                          {recommendation.mood && (
+                            <span className="ml-2 bg-pink-100 text-pink-800 px-2 py-0.5 rounded-full">
+                              {recommendation.mood}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="mt-4 flex justify-between">
+                          <button className="inline-flex items-center text-sm font-medium text-pink-600 hover:text-pink-700">
+                            View Details
+                            <svg className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          
+                          <div className="flex space-x-2">
+                            <button className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500">
+                              <Share2 className="h-4 w-4" />
+                            </button>
+                            <button className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500">
+                              <Heart className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {/* Recommendation Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
