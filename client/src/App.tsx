@@ -5,6 +5,22 @@ function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizStep, setQuizStep] = useState(1);
+  const [quizRecipient, setQuizRecipient] = useState({
+    name: "",
+    age: "",
+    relationship: "Friend",
+    interests: [] as string[],
+    occasions: [] as { type: string; date: string }[],
+    budget: { min: 25, max: 100 }
+  });
+  const [showBudgetTracker, setShowBudgetTracker] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    priceRange: [0, 500],
+    categories: [] as string[],
+    occasions: [] as string[]
+  });
 
   const handleLogin = () => {
     setLoggedIn(true);
@@ -13,6 +29,69 @@ function App() {
   const handleLogout = () => {
     setLoggedIn(false);
     setShowLoginForm(false);
+  };
+  
+  const handleQuizInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setQuizRecipient(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleInterestToggle = (interest: string) => {
+    setQuizRecipient(prev => {
+      const interests = [...prev.interests];
+      if (interests.includes(interest)) {
+        return {
+          ...prev,
+          interests: interests.filter(i => i !== interest)
+        };
+      } else {
+        return {
+          ...prev,
+          interests: [...interests, interest]
+        };
+      }
+    });
+  };
+  
+  const handleOccasionAdd = (type: string, date: string) => {
+    setQuizRecipient(prev => ({
+      ...prev,
+      occasions: [...prev.occasions, { type, date }]
+    }));
+  };
+  
+  const handleBudgetChange = (min: number, max: number) => {
+    setQuizRecipient(prev => ({
+      ...prev,
+      budget: { min, max }
+    }));
+  };
+  
+  const nextQuizStep = () => {
+    setQuizStep(prev => prev + 1);
+  };
+  
+  const prevQuizStep = () => {
+    setQuizStep(prev => Math.max(1, prev - 1));
+  };
+  
+  const finishQuiz = () => {
+    // Here you would typically save the recipient to your database
+    // For now we'll just close the quiz
+    setShowQuiz(false);
+    setQuizStep(1);
+    // Reset the form
+    setQuizRecipient({
+      name: "",
+      age: "",
+      relationship: "Friend",
+      interests: [],
+      occasions: [],
+      budget: { min: 25, max: 100 }
+    });
   };
 
   if (!loggedIn) {
@@ -396,11 +475,14 @@ function App() {
           </div>
         )}
         
-        {activeTab === "recipients" && !selectedRecipient && (
+        {activeTab === "recipients" && !selectedRecipient && !showQuiz && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold text-gray-900">Recipients</h1>
-              <button className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600">
+              <button 
+                onClick={() => setShowQuiz(true)}
+                className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
+              >
                 Add Recipient
               </button>
             </div>
@@ -739,6 +821,269 @@ function App() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Recipient Quiz */}
+        {activeTab === "recipients" && showQuiz && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setShowQuiz(false)} 
+                className="flex items-center gap-1 text-indigo-500 hover:text-indigo-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Back to Recipients
+              </button>
+            </div>
+            
+            <div className="mx-auto max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-8 text-center">
+                <h2 className="text-2xl font-bold text-gray-900">Add New Recipient</h2>
+                <p className="text-gray-600">Help us understand who you're shopping for</p>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="mb-8">
+                <div className="relative mb-2">
+                  <div className="absolute h-1 w-full bg-gray-200 rounded"></div>
+                  <div 
+                    className="absolute h-1 bg-pink-500 rounded" 
+                    style={{ width: `${(quizStep / 4) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between">
+                  <span className={`text-xs font-medium ${quizStep >= 1 ? 'text-pink-500' : 'text-gray-500'}`}>Basic Info</span>
+                  <span className={`text-xs font-medium ${quizStep >= 2 ? 'text-pink-500' : 'text-gray-500'}`}>Interests</span>
+                  <span className={`text-xs font-medium ${quizStep >= 3 ? 'text-pink-500' : 'text-gray-500'}`}>Occasions</span>
+                  <span className={`text-xs font-medium ${quizStep >= 4 ? 'text-pink-500' : 'text-gray-500'}`}>Budget</span>
+                </div>
+              </div>
+              
+              {/* Step 1: Basic Information */}
+              {quizStep === 1 && (
+                <div className="space-y-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      Recipient's Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={quizRecipient.name}
+                      onChange={handleQuizInputChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                      placeholder="e.g., John Smith"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="age" className="block text-sm font-medium text-gray-700">
+                      Age
+                    </label>
+                    <input
+                      type="number"
+                      id="age"
+                      name="age"
+                      value={quizRecipient.age}
+                      onChange={handleQuizInputChange}
+                      min="1"
+                      max="120"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                      placeholder="e.g., 35"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="relationship" className="block text-sm font-medium text-gray-700">
+                      Relationship
+                    </label>
+                    <select
+                      id="relationship"
+                      name="relationship"
+                      value={quizRecipient.relationship}
+                      onChange={handleQuizInputChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    >
+                      <option value="Friend">Friend</option>
+                      <option value="Family">Family</option>
+                      <option value="Spouse/Partner">Spouse/Partner</option>
+                      <option value="Colleague">Colleague</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+              
+              {/* Step 2: Interests */}
+              {quizStep === 2 && (
+                <div className="space-y-6">
+                  <p className="text-sm text-gray-600">Select all interests that apply to {quizRecipient.name || "your recipient"}</p>
+                  
+                  <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                    {[
+                      "Reading", "Cooking", "Gardening", "Fitness", "Technology", 
+                      "Travel", "Music", "Art", "Fashion", "Sports",
+                      "Gaming", "Movies", "Photography", "Outdoors", "Wellness",
+                      "Crafts", "Home Decor", "Pets", "Food & Drink", "Science",
+                      "Cars", "Beauty", "Collecting", "DIY"
+                    ].map((interest) => (
+                      <div 
+                        key={interest}
+                        onClick={() => handleInterestToggle(interest)}
+                        className={`cursor-pointer rounded-md border p-3 text-center text-sm transition-colors ${
+                          quizRecipient.interests.includes(interest)
+                            ? "border-pink-300 bg-pink-50 text-pink-700"
+                            : "border-gray-200 hover:border-pink-200 hover:bg-pink-50"
+                        }`}
+                      >
+                        {interest}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Step 3: Occasions */}
+              {quizStep === 3 && (
+                <div className="space-y-6">
+                  <p className="text-sm text-gray-600">Add important occasions for {quizRecipient.name || "your recipient"}</p>
+                  
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                      <button 
+                        onClick={() => handleOccasionAdd("Birthday", "2025-06-15")}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
+                      >
+                        Birthday
+                      </button>
+                      <button 
+                        onClick={() => handleOccasionAdd("Anniversary", "2025-08-10")}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
+                      >
+                        Anniversary
+                      </button>
+                      <button 
+                        onClick={() => handleOccasionAdd("Christmas", "2025-12-25")}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
+                      >
+                        Christmas
+                      </button>
+                      <button 
+                        onClick={() => handleOccasionAdd("Valentine's Day", "2026-02-14")}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
+                      >
+                        Valentine's Day
+                      </button>
+                      <button 
+                        onClick={() => handleOccasionAdd("Graduation", "2025-05-30")}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
+                      >
+                        Graduation
+                      </button>
+                    </div>
+                    
+                    {quizRecipient.occasions.length > 0 && (
+                      <div className="rounded-md border border-gray-200 p-4">
+                        <h3 className="mb-2 font-medium text-gray-900">Added Occasions:</h3>
+                        <ul className="space-y-2">
+                          {quizRecipient.occasions.map((occasion, index) => (
+                            <li key={index} className="flex items-center justify-between">
+                              <span>{occasion.type}</span>
+                              <span className="text-sm text-gray-500">{occasion.date}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Step 4: Budget */}
+              {quizStep === 4 && (
+                <div className="space-y-6">
+                  <p className="text-sm text-gray-600">What's your budget range for gifts for {quizRecipient.name || "your recipient"}?</p>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">${quizRecipient.budget.min}</span>
+                      <span className="text-sm text-gray-600">${quizRecipient.budget.max}</span>
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <div className="w-1/2">
+                        <label htmlFor="minBudget" className="block text-sm font-medium text-gray-700">
+                          Minimum ($)
+                        </label>
+                        <input
+                          type="range"
+                          id="minBudget"
+                          min="0"
+                          max={quizRecipient.budget.max - 1}
+                          value={quizRecipient.budget.min}
+                          onChange={(e) => handleBudgetChange(parseInt(e.target.value), quizRecipient.budget.max)}
+                          className="mt-1 w-full"
+                        />
+                      </div>
+                      
+                      <div className="w-1/2">
+                        <label htmlFor="maxBudget" className="block text-sm font-medium text-gray-700">
+                          Maximum ($)
+                        </label>
+                        <input
+                          type="range"
+                          id="maxBudget"
+                          min={quizRecipient.budget.min + 1}
+                          max="1000"
+                          value={quizRecipient.budget.max}
+                          onChange={(e) => handleBudgetChange(quizRecipient.budget.min, parseInt(e.target.value))}
+                          className="mt-1 w-full"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-md bg-indigo-50 p-4 text-sm text-indigo-700">
+                      <p>Budget range: ${quizRecipient.budget.min} - ${quizRecipient.budget.max}</p>
+                      <p className="mt-2">We'll use this range to suggest gifts within your budget.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Navigation Buttons */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={prevQuizStep}
+                  className={`rounded-md px-4 py-2 text-sm font-medium ${
+                    quizStep === 1 
+                      ? "invisible" 
+                      : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Previous
+                </button>
+                
+                {quizStep < 4 ? (
+                  <button
+                    onClick={nextQuizStep}
+                    className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    onClick={finishQuiz}
+                    className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
+                  >
+                    Finish & Get Recommendations
+                  </button>
+                )}
               </div>
             </div>
           </div>
