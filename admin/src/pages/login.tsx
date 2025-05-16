@@ -1,101 +1,111 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, FormEvent } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
 const Login = () => {
-  const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  if (isAuthenticated) {
-    navigate('/');
-    return null;
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const { isAuthenticated, login, error } = useAuth()
+  const navigate = useNavigate()
+  
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    
+    if (!email || !password) {
+      return
+    }
+    
+    setIsSubmitting(true)
     
     try {
-      await login.mutateAsync({ email, password });
-      navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      const success = await login(email, password)
+      if (success) {
+        navigate('/')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
-  };
-
+  }
+  
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="text-center text-3xl font-extrabold text-blue-600">GIFT AI</h1>
-          <h2 className="mt-2 text-center text-2xl font-bold text-gray-900">Admin Access</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            For authorized administrators only
-          </p>
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold gradient-text mb-2">GIFT AI Admin</h1>
+          <p className="text-foreground/70">Login to manage product tags and AI recommendations</p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
+        
+        <div className="rounded-lg border border-border bg-card p-8 shadow-sm">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="email">
+                Email
               </label>
               <input
-                id="email-address"
-                name="email"
+                id="email"
                 type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="admin@example.com"
+                required
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
+            
+            <div className="mb-6">
+              <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="password">
                 Password
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="••••••••"
+                required
               />
             </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded p-3 text-red-600 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div>
+            
+            {error && (
+              <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+            
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              disabled={login.isPending}
+              disabled={isSubmitting}
+              className="w-full rounded-md bg-primary px-5 py-2.5 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-primary/30 disabled:opacity-70"
             >
-              {login.isPending ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                'Log in'
+              )}
             </button>
-          </div>
-          
-          <div className="text-center text-sm text-gray-500">
-            <p>This is a secure area for GIFT AI administrators only.</p>
-            <p>Unauthorized access is prohibited.</p>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
