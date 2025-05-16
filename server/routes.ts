@@ -1,0 +1,146 @@
+import type { Express, Request, Response } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { authController } from "./controllers/auth-controller";
+import { recipientController } from "./controllers/recipient-controller";
+import { recommendationController } from "./controllers/recommendation-controller";
+import { productController } from "./controllers/product-controller";
+import session from "express-session";
+import MemoryStore from "memorystore";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import { hashPassword, comparePassword } from "./utils/password-utils";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup session store
+  const MemoryStoreSession = MemoryStore(session);
+  
+  app.use(
+    session({
+      cookie: { maxAge: 86400000 }, // 24 hours
+      store: new MemoryStoreSession({
+        checkPeriod: 86400000, // prune expired entries every 24h
+      }),
+      resave: false,
+      saveUninitialized: false,
+      secret: process.env.SESSION_SECRET || "gift-ai-secret",
+    })
+  );
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Configure Passport
+  passport.use(
+    new LocalStrategy(
+      { usernameField: "email" },
+      async (email, password, done) => {
+        try {
+          const user = await storage.getUserByEmail(email);
+          if (!user) {
+            return done(null, false, { message: "Incorrect email." });
+          }
+          
+          const isMatch = await comparePassword(password, user.password);
+          if (!isMatch) {
+            return done(null, false, { message: "Incorrect password." });
+          }
+          
+          return done(null, user);
+        } catch (err) {
+          return done(err);
+        }
+      }
+    )
+  );
+
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (err) {
+      done(err);
+    }
+  });
+
+  // Middleware to check if user is authenticated
+  const isAuthenticated = (req: Request, res: Response, next: any) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    return res.status(401).json({ message: "Unauthorized" });
+  };
+
+  // Auth routes
+  app.post("/api/auth/register", authController.register);
+  app.post("/api/auth/login", passport.authenticate("local"), authController.login);
+  app.post("/api/auth/logout", authController.logout);
+  app.get("/api/auth/current-user", isAuthenticated, authController.getCurrentUser);
+
+  // Recipient routes
+  app.get("/api/recipients", isAuthenticated, recipientController.getRecipients);
+  app.get("/api/recipients/:id", isAuthenticated, recipientController.getRecipientById);
+  app.post("/api/recipients", isAuthenticated, recipientController.createRecipient);
+  app.put("/api/recipients/:id", isAuthenticated, recipientController.updateRecipient);
+  app.delete("/api/recipients/:id", isAuthenticated, recipientController.deleteRecipient);
+  
+  // Preference routes
+  app.get("/api/recipients/:id/preferences", isAuthenticated, recipientController.getPreferences);
+  app.post("/api/recipients/:id/preferences", isAuthenticated, recipientController.createPreference);
+  app.put("/api/preferences/:id", isAuthenticated, recipientController.updatePreference);
+  
+  // Occasion routes
+  app.get("/api/recipients/:id/occasions", isAuthenticated, recipientController.getOccasions);
+  app.post("/api/recipients/:id/occasions", isAuthenticated, recipientController.createOccasion);
+  app.put("/api/occasions/:id", isAuthenticated, recipientController.updateOccasion);
+  app.delete("/api/occasions/:id", isAuthenticated, recipientController.deleteOccasion);
+  app.get("/api/occasions/upcoming", isAuthenticated, recipientController.getUpcomingOccasions);
+  
+  // Recommendation routes
+  app.get("/api/recommendations", isAuthenticated, recommendationController.getRecommendations);
+  app.get("/api/recipients/:id/recommendations", isAuthenticated, recommendationController.getRecommendationsByRecipient);
+  app.post("/api/recipients/:id/recommendations/generate", isAuthenticated, recommendationController.generateRecommendations);
+  app.put("/api/recommendations/:id/status", isAuthenticated, recommendationController.updateRecommendationStatus);
+  
+  // Product routes
+  app.get("/api/products", isAuthenticated, productController.getProducts);
+  app.get("/api/products/:id", isAuthenticated, productController.getProductById);
+
+  // Stats routes
+  app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      
+      // Get recipients count
+      const recipients = await storage.getRecipientsByUserId(userId);
+      
+      // Get recommendations count
+      const recommendations = await storage.getRecommendationsByUserId(userId);
+      
+      // Get upcoming occasions count
+      const upcomingOccasions = await storage.getUpcomingOccasionsByUserId(userId);
+      
+      // Calculate gifts purchased (recommendations with status "approved")
+      const giftsPurchased = recommendations.filter(rec => rec.status === "approved").length;
+      
+      res.json({
+        recipients: recipients.length,
+        recommendations: recommendations.length,
+        gifts_purchased: giftsPurchased,
+        upcoming_events: upcomingOccasions.length
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  const httpServer = createServer(app);
+
+  return httpServer;
+}
