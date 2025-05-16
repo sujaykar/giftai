@@ -40,8 +40,21 @@ function App() {
   const [filterOptions, setFilterOptions] = useState({
     priceRange: [0, 500],
     categories: [] as string[],
-    occasions: [] as string[]
+    occasions: [] as string[],
+    mood: "" // Added mood filter
   });
+  
+  // Gift mood options
+  const moodOptions = [
+    { id: "thoughtful", name: "Thoughtful", description: "Meaningful gifts that show you care", emoji: "💭" },
+    { id: "fun", name: "Fun", description: "Playful gifts for joy and laughter", emoji: "🎮" },
+    { id: "romantic", name: "Romantic", description: "Intimate gifts to express love", emoji: "❤️" },
+    { id: "practical", name: "Practical", description: "Useful gifts for everyday life", emoji: "🔧" },
+    { id: "luxurious", name: "Luxurious", description: "High-end gifts for special occasions", emoji: "✨" },
+    { id: "creative", name: "Creative", description: "Artistic gifts to inspire", emoji: "🎨" },
+    { id: "nostalgic", name: "Nostalgic", description: "Gifts that bring back memories", emoji: "📷" },
+    { id: "relaxing", name: "Relaxing", description: "Gifts for stress relief and comfort", emoji: "🧘" }
+  ];
   const [showPersonalizationModal, setShowPersonalizationModal] = useState<number | null>(null);
   const [priceComparisonProduct, setPriceComparisonProduct] = useState<any>(null);
   const [sharableProduct, setSharableProduct] = useState<any>(null);
@@ -1511,114 +1524,143 @@ function App() {
             <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-semibold text-gray-900">Filter Recommendations</h2>
               
-              <div className="grid gap-6 md:grid-cols-3">
-                {/* Price Range Filter */}
+              <div className="space-y-6">
+                {/* Gift Mood Selector */}
                 <div>
-                  <h3 className="mb-2 text-sm font-medium text-gray-700">Price Range</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500">${filterOptions.priceRange[0]}</span>
-                      <span className="text-xs text-gray-500">${filterOptions.priceRange[1]}</span>
-                    </div>
-                    <div className="relative h-2 w-full rounded-md bg-gray-200">
-                      <div 
-                        className="absolute h-2 rounded-md bg-pink-500"
-                        style={{ 
-                          left: `${(filterOptions.priceRange[0] / 500) * 100}%`, 
-                          width: `${((filterOptions.priceRange[1] - filterOptions.priceRange[0]) / 500) * 100}%` 
-                        }}
-                      ></div>
-                    </div>
-                    <div className="flex space-x-4">
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="500"
-                        value={filterOptions.priceRange[0]}
-                        onChange={(e) => setFilterOptions({
-                          ...filterOptions,
-                          priceRange: [parseInt(e.target.value), filterOptions.priceRange[1]]
-                        })}
-                        className="w-full"
-                      />
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="500"
-                        value={filterOptions.priceRange[1]}
-                        onChange={(e) => setFilterOptions({
-                          ...filterOptions,
-                          priceRange: [filterOptions.priceRange[0], parseInt(e.target.value)]
-                        })}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Categories Filter */}
-                <div>
-                  <h3 className="mb-2 text-sm font-medium text-gray-700">Categories</h3>
-                  <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-                    {["Technology", "Experiences", "Outdoors", "Gaming", "Creativity", "Home", "Fashion", "Books"].map((category) => (
+                  <h3 className="mb-3 text-sm font-medium text-gray-700">Gift Mood</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {moodOptions.map((mood) => (
                       <button
-                        key={category}
-                        onClick={() => {
-                          const categories = [...filterOptions.categories];
-                          if (categories.includes(category)) {
-                            setFilterOptions({
-                              ...filterOptions,
-                              categories: categories.filter(c => c !== category)
-                            });
-                          } else {
-                            setFilterOptions({
-                              ...filterOptions,
-                              categories: [...categories, category]
-                            });
-                          }
-                        }}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          filterOptions.categories.includes(category)
-                            ? "bg-pink-100 text-pink-700"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        key={mood.id}
+                        onClick={() => setFilterOptions({
+                          ...filterOptions,
+                          mood: filterOptions.mood === mood.id ? "" : mood.id
+                        })}
+                        className={`flex flex-col items-center justify-center rounded-lg p-3 transition-colors ${
+                          filterOptions.mood === mood.id 
+                            ? "bg-gradient-to-br from-pink-50 to-indigo-50 border border-pink-200" 
+                            : "bg-white border border-gray-200 hover:bg-gray-50"
                         }`}
                       >
-                        {category}
+                        <span className="text-2xl mb-1">{mood.emoji}</span>
+                        <span className={`text-sm font-medium ${
+                          filterOptions.mood === mood.id ? "text-pink-700" : "text-gray-700"
+                        }`}>{mood.name}</span>
+                        <span className="text-xs text-gray-500 text-center mt-1 line-clamp-2">{mood.description}</span>
                       </button>
                     ))}
                   </div>
                 </div>
                 
-                {/* Occasions Filter */}
-                <div>
-                  <h3 className="mb-2 text-sm font-medium text-gray-700">Occasions</h3>
-                  <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-                    {["Birthday", "Anniversary", "Christmas", "Valentine's Day", "Graduation", "Wedding", "Baby Shower"].map((occasion) => (
-                      <button
-                        key={occasion}
-                        onClick={() => {
-                          const occasions = [...filterOptions.occasions];
-                          if (occasions.includes(occasion)) {
-                            setFilterOptions({
-                              ...filterOptions,
-                              occasions: occasions.filter(o => o !== occasion)
-                            });
-                          } else {
-                            setFilterOptions({
-                              ...filterOptions,
-                              occasions: [...occasions, occasion]
-                            });
-                          }
-                        }}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          filterOptions.occasions.includes(occasion)
-                            ? "bg-indigo-100 text-indigo-700"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        {occasion}
-                      </button>
-                    ))}
+                <div className="grid gap-6 md:grid-cols-3">
+                  {/* Price Range Filter */}
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-700">Price Range</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">${filterOptions.priceRange[0]}</span>
+                        <span className="text-xs text-gray-500">${filterOptions.priceRange[1]}</span>
+                      </div>
+                      <div className="relative h-2 w-full rounded-md bg-gray-200">
+                        <div 
+                          className="absolute h-2 rounded-md bg-pink-500"
+                          style={{ 
+                            left: `${(filterOptions.priceRange[0] / 500) * 100}%`, 
+                            width: `${((filterOptions.priceRange[1] - filterOptions.priceRange[0]) / 500) * 100}%` 
+                          }}
+                        ></div>
+                      </div>
+                      <div className="flex space-x-4">
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="500"
+                          value={filterOptions.priceRange[0]}
+                          onChange={(e) => setFilterOptions({
+                            ...filterOptions,
+                            priceRange: [parseInt(e.target.value), filterOptions.priceRange[1]]
+                          })}
+                          className="w-full"
+                        />
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="500"
+                          value={filterOptions.priceRange[1]}
+                          onChange={(e) => setFilterOptions({
+                            ...filterOptions,
+                            priceRange: [filterOptions.priceRange[0], parseInt(e.target.value)]
+                          })}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Categories Filter */}
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-700">Categories</h3>
+                    <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
+                      {["Technology", "Experiences", "Outdoors", "Gaming", "Creativity", "Home", "Fashion", "Books"].map((category) => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            const categories = [...filterOptions.categories];
+                            if (categories.includes(category)) {
+                              setFilterOptions({
+                                ...filterOptions,
+                                categories: categories.filter(c => c !== category)
+                              });
+                            } else {
+                              setFilterOptions({
+                                ...filterOptions,
+                                categories: [...categories, category]
+                              });
+                            }
+                          }}
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            filterOptions.categories.includes(category)
+                              ? "bg-pink-100 text-pink-700"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Occasions Filter */}
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-700">Occasions</h3>
+                    <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
+                      {["Birthday", "Anniversary", "Christmas", "Valentine's Day", "Graduation", "Wedding", "Baby Shower"].map((occasion) => (
+                        <button
+                          key={occasion}
+                          onClick={() => {
+                            const occasions = [...filterOptions.occasions];
+                            if (occasions.includes(occasion)) {
+                              setFilterOptions({
+                                ...filterOptions,
+                                occasions: occasions.filter(o => o !== occasion)
+                              });
+                            } else {
+                              setFilterOptions({
+                                ...filterOptions,
+                                occasions: [...occasions, occasion]
+                              });
+                            }
+                          }}
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            filterOptions.occasions.includes(occasion)
+                              ? "bg-indigo-100 text-indigo-700"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {occasion}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1628,7 +1670,8 @@ function App() {
                   onClick={() => setFilterOptions({
                     priceRange: [0, 500],
                     categories: [],
-                    occasions: []
+                    occasions: [],
+                    mood: ""
                   })}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
