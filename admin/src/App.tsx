@@ -1,78 +1,76 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import Layout from './components/layout'
-import Login from './pages/login'
-import Dashboard from './pages/dashboard'
-import ProductTags from './pages/product-tags'
-import AutoTagging from './pages/auto-tagging'
-import { useAuth } from './hooks/useAuth'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// Define auth requirements for routes
+// Pages
+import Dashboard from './pages/dashboard';
+import Login from './pages/login';
+import ProductTags from './pages/product-tags';
+import AutoTagging from './pages/auto-tagging';
+
+// Components
+import Layout from './components/layout';
+
+// Auth context
+import { AuthProvider, useAuth } from './hooks/useAuth';
+
+// Interface for protected routes
 type ProtectedRouteProps = {
   children: React.ReactNode
 }
 
 function App() {
-  const [loading, setLoading] = useState(true)
-  const { isAuthenticated, checkAuth } = useAuth()
-
-  useEffect(() => {
-    const initAuth = async () => {
-      await checkAuth()
-      setLoading(false)
-    }
-    
-    initAuth()
-  }, [checkAuth])
-
   // Protected route component
   const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+    const { user, loading } = useAuth();
+    
     if (loading) {
-      return <div className="flex h-screen w-full items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-      </div>
+      return <div className="flex justify-center items-center h-screen">Loading...</div>;
     }
     
-    if (!isAuthenticated) {
-      return <Navigate to="/login" replace />
+    if (!user) {
+      return <Navigate to="/admin/login" />;
     }
     
-    return <>{children}</>
-  }
+    return <>{children}</>;
+  };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        
-        <Route path="/" element={
-          <ProtectedRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/product-tags" element={
-          <ProtectedRoute>
-            <Layout>
-              <ProductTags />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/auto-tagging" element={
-          <ProtectedRoute>
-            <Layout>
-              <AutoTagging />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
-  )
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/admin/login" element={<Login />} />
+          
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/product-tags" element={
+            <ProtectedRoute>
+              <Layout>
+                <ProductTags />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/auto-tagging" element={
+            <ProtectedRoute>
+              <Layout>
+                <AutoTagging />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Redirect root to admin dashboard */}
+          <Route path="/admin/*" element={<Navigate to="/admin" />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

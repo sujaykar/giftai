@@ -1,111 +1,115 @@
-import { useState, FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useState, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { AlertCircle, LogIn } from 'lucide-react';
 
 const Login = () => {
-  const { isAuthenticated, login, error } = useAuth()
-  const navigate = useNavigate()
-  
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { login, error } = useAuth();
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!email || !password) {
-      return
+      return;
     }
     
-    setIsSubmitting(true)
+    setIsLoading(true);
     
     try {
-      const success = await login(email, password)
+      const success = await login(email, password);
       if (success) {
-        navigate('/')
+        navigate('/');
       }
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false);
     }
-  }
-  
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />
-  }
-  
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold gradient-text mb-2">GIFT AI Admin</h1>
-          <p className="text-foreground/70">Login to manage product tags and AI recommendations</p>
+    <div className="flex h-screen bg-gray-100">
+      <div className="m-auto w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold">Gift AI Admin</h1>
+          <p className="text-gray-600 mt-2">Sign in to access the administrative dashboard</p>
         </div>
         
-        <div className="rounded-lg border border-border bg-card p-8 shadow-sm">
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="email">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-md border border-input bg-background p-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="admin@example.com"
-                required
-              />
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+            <div className="flex">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span>{error}</span>
             </div>
-            
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="password">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-input bg-background p-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            
-            {error && (
-              <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email address
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="admin@example.com"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">Hint: Use admin@example.com</p>
+          </div>
+          
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="••••••••"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">Hint: Use password123</p>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={isLoading || !email || !password}
+            className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+              (isLoading || !email || !password) ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </>
+            ) : (
+              <>
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign in
+              </>
             )}
-            
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-md bg-primary px-5 py-2.5 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-primary/30 disabled:opacity-70"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Logging in...
-                </span>
-              ) : (
-                'Log in'
-              )}
-            </button>
-          </form>
+          </button>
+        </form>
+        
+        <div className="mt-8 text-center text-xs text-gray-500">
+          <p>This is a demo administrative interface for Gift AI.</p>
+          <p className="mt-1">The application simulates a management dashboard for product tagging and AI recommendations.</p>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

@@ -1,236 +1,195 @@
-import { useState, useEffect } from 'react'
-import { BarChart3, Users, Tag, Zap, Package, PieChart } from 'lucide-react'
-import axios from 'axios'
+import { useState, useEffect } from 'react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Users, ShoppingBag, Tag, Activity } from 'lucide-react';
+import axios from 'axios';
 
-// Define stats types
+// Dashboard statistics interfaces
 interface DashboardStats {
-  totalProducts: number
-  totalTags: number
-  autoTaggedProducts: number
-  tagsByType: Record<string, number>
-  recentAutoTaggings: {
-    id: number
-    productName: string
-    tagCount: number
-    timestamp: string
-  }[]
+  userCount: number;
+  productCount: number;
+  tagCount: number;
+  recommendationCount: number;
+}
+
+interface TagDistribution {
+  tagType: string;
+  count: number;
+}
+
+interface RecommendationMetrics {
+  date: string;
+  aiRecommendations: number;
+  contentBasedRecommendations: number;
+  collaborativeRecommendations: number;
 }
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    userCount: 0,
+    productCount: 0,
+    tagCount: 0,
+    recommendationCount: 0
+  });
+  
+  const [tagDistribution, setTagDistribution] = useState<TagDistribution[]>([]);
+  const [recommendationMetrics, setRecommendationMetrics] = useState<RecommendationMetrics[]>([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
       try {
-        setLoading(true)
-        const response = await axios.get('/api/admin/stats/dashboard', {
-          withCredentials: true
-        })
-        setStats(response.data)
-        setError(null)
-      } catch (err) {
-        console.error('Error fetching dashboard stats:', err)
-        setError('Failed to load dashboard statistics. Please try again later.')
+        setLoading(true);
+        // In a real implementation, these would be separate API calls
+        // For now we're using mock data for the UI
+        
+        // Fetch dashboard statistics
+        // const { data } = await axios.get('/api/admin/dashboard/stats');
+        // setStats(data);
+        
+        // Sample data for development
+        setStats({
+          userCount: 128,
+          productCount: 453,
+          tagCount: 1842,
+          recommendationCount: 536
+        });
+        
+        setTagDistribution([
+          { tagType: 'Category', count: 246 },
+          { tagType: 'Occasion', count: 187 },
+          { tagType: 'Interest', count: 412 },
+          { tagType: 'Age Group', count: 95 },
+          { tagType: 'Price Range', count: 156 },
+          { tagType: 'Style', count: 325 },
+          { tagType: 'Feature', count: 421 }
+        ]);
+        
+        setRecommendationMetrics([
+          { date: 'Jan', aiRecommendations: 45, contentBasedRecommendations: 23, collaborativeRecommendations: 12 },
+          { date: 'Feb', aiRecommendations: 58, contentBasedRecommendations: 27, collaborativeRecommendations: 15 },
+          { date: 'Mar', aiRecommendations: 62, contentBasedRecommendations: 32, collaborativeRecommendations: 18 },
+          { date: 'Apr', aiRecommendations: 78, contentBasedRecommendations: 41, collaborativeRecommendations: 24 },
+          { date: 'May', aiRecommendations: 91, contentBasedRecommendations: 52, collaborativeRecommendations: 29 },
+          { date: 'Jun', aiRecommendations: 125, contentBasedRecommendations: 63, collaborativeRecommendations: 35 }
+        ]);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchStats()
-  }, [])
-
-  // Placeholder stats for initial development
-  const placeholderStats: DashboardStats = {
-    totalProducts: 247,
-    totalTags: 1834,
-    autoTaggedProducts: 198,
-    tagsByType: {
-      'category': 247,
-      'feature': 525,
-      'audience': 312,
-      'occasion': 287,
-      'interest': 332,
-      'style': 131
-    },
-    recentAutoTaggings: [
-      {
-        id: 1,
-        productName: 'Wireless Headphones',
-        tagCount: 12,
-        timestamp: '2025-05-15T14:32:00Z'
-      },
-      {
-        id: 2,
-        productName: 'Portable Bluetooth Speaker',
-        tagCount: 8,
-        timestamp: '2025-05-15T13:45:00Z'
-      },
-      {
-        id: 3,
-        productName: 'Smart Watch Series 7',
-        tagCount: 15,
-        timestamp: '2025-05-15T11:22:00Z'
-      },
-      {
-        id: 4,
-        productName: 'Leather Wallet',
-        tagCount: 6,
-        timestamp: '2025-05-15T10:18:00Z'
-      },
-      {
-        id: 5,
-        productName: 'Handcrafted Ceramic Mug',
-        tagCount: 9,
-        timestamp: '2025-05-15T09:05:00Z'
-      }
-    ]
-  }
-
-  // Use placeholder stats in development
-  const displayStats = stats || placeholderStats
-
-  if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-      </div>
-    )
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Product tagging analytics and overview</p>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Overview of your gift recommendation platform
+        </p>
       </div>
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-          {error}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
+      ) : (
+        <>
+          {/* Stats cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                  <h3 className="text-2xl font-bold">{stats.userCount}</h3>
+                </div>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <ShoppingBag className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Products</p>
+                  <h3 className="text-2xl font-bold">{stats.productCount}</h3>
+                </div>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <Tag className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Tags</p>
+                  <h3 className="text-2xl font-bold">{stats.tagCount}</h3>
+                </div>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-amber-100 rounded-full">
+                  <Activity className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Recommendations</p>
+                  <h3 className="text-2xl font-bold">{stats.recommendationCount}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Tag Distribution */}
+            <div className="rounded-lg border bg-card p-6">
+              <h3 className="text-lg font-medium mb-4">Tag Distribution</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={tagDistribution} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="tagType" type="category" scale="band" width={100} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" name="Number of Tags" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Recommendation Metrics */}
+            <div className="rounded-lg border bg-card p-6">
+              <h3 className="text-lg font-medium mb-4">Recommendation Metrics</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={recommendationMetrics}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="aiRecommendations" name="AI Recommendations" stroke="#8884d8" />
+                    <Line type="monotone" dataKey="contentBasedRecommendations" name="Content-Based" stroke="#82ca9d" />
+                    <Line type="monotone" dataKey="collaborativeRecommendations" name="Collaborative" stroke="#ffc658" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </>
       )}
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center">
-            <div className="mr-4 rounded-full bg-primary/10 p-3">
-              <Package className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Products</p>
-              <h2 className="text-2xl font-bold">{displayStats.totalProducts}</h2>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center">
-            <div className="mr-4 rounded-full bg-primary/10 p-3">
-              <Tag className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Tags</p>
-              <h2 className="text-2xl font-bold">{displayStats.totalTags}</h2>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center">
-            <div className="mr-4 rounded-full bg-primary/10 p-3">
-              <Zap className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Auto-Tagged Products</p>
-              <h2 className="text-2xl font-bold">{displayStats.autoTaggedProducts}</h2>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tag Categories */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-medium">Tags by Category</h3>
-            <PieChart className="h-5 w-5 text-muted-foreground" />
-          </div>
-          
-          <div className="mt-6 space-y-3">
-            {Object.entries(displayStats.tagsByType).map(([category, count]) => (
-              <div key={category}>
-                <div className="mb-1 flex items-center justify-between">
-                  <span className="text-sm capitalize">{category}</span>
-                  <span className="text-sm font-medium">{count}</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div 
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${(count / displayStats.totalTags) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Auto-Taggings */}
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-medium">Recent Auto-Taggings</h3>
-            <BarChart3 className="h-5 w-5 text-muted-foreground" />
-          </div>
-          
-          <div className="divide-y divide-border">
-            {displayStats.recentAutoTaggings.map((item) => (
-              <div key={item.id} className="py-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{item.productName}</span>
-                  <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                    {item.tagCount} tags
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {formatDate(item.timestamp)}
-                </p>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-4">
-            <a 
-              href="/auto-tagging"
-              className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-            >
-              View all auto-tagging records
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="ml-1 h-4 w-4" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
