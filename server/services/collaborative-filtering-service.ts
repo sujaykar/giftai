@@ -1,172 +1,176 @@
-import { storage } from '../storage';
-import { 
-  User, 
-  Product, 
-  PurchaseHistory, 
-  UserSimilarity, 
-  InsertUserSimilarity
-} from '@shared/schema';
+import { storage } from "../storage";
 
 /**
- * Calculate similarity between two users based on purchase history
- * Uses Jaccard similarity coefficient (intersection / union)
+ * Service for collaborative filtering recommendation system
  */
-export async function calculateUserSimilarity(
-  userId: number, 
-  otherUserId: number
-): Promise<number> {
-  try {
-    // Get purchase history for both users
-    const userPurchases = await storage.getPurchaseHistory(userId);
-    const otherUserPurchases = await storage.getPurchaseHistory(otherUserId);
-    
-    if (userPurchases.length === 0 || otherUserPurchases.length === 0) {
-      return 0; // Can't calculate similarity with no purchase data
-    }
-    
-    // Get sets of product IDs purchased by each user
-    const userProductIds = new Set(userPurchases.map(p => p.productId));
-    const otherUserProductIds = new Set(otherUserPurchases.map(p => p.productId));
-    
-    // Calculate intersection 
-    const intersection = new Set(
-      [...userProductIds].filter(id => otherUserProductIds.has(id))
-    );
-    
-    // Calculate union
-    const union = new Set([...userProductIds, ...otherUserProductIds]);
-    
-    // Jaccard similarity: size of intersection / size of union
-    const similarity = intersection.size / union.size;
-    
-    return similarity;
-  } catch (error) {
-    console.error(`Error calculating user similarity between ${userId} and ${otherUserId}:`, error);
-    return 0;
-  }
-}
-
-/**
- * Find similar users for a given user
- */
-export async function findSimilarUsers(userId: number): Promise<UserSimilarity[]> {
-  try {
-    // Get all users except the current user
-    const allUsers = await storage.getAllUsers();
-    const otherUsers = allUsers.filter(user => user.id !== userId);
-    
-    const similarities: InsertUserSimilarity[] = [];
-    
-    // Calculate similarity with each other user
-    for (const otherUser of otherUsers) {
-      const similarityScore = await calculateUserSimilarity(userId, otherUser.id);
+export const collaborativeFilteringService = {
+  /**
+   * Calculate Jaccard similarity between two users based on purchase history
+   * Jaccard similarity = (size of intersection) / (size of union)
+   */
+  async calculateJaccardSimilarity(userId1: number, userId2: number): Promise<number> {
+    try {
+      // Get purchase history for both users
+      const userPurchases1 = await storage.getPurchaseHistory(userId1);
+      const userPurchases2 = await storage.getPurchaseHistory(userId2);
       
-      // Only store significant similarities (adjust threshold as needed)
-      if (similarityScore > 0.1) {
-        similarities.push({
-          userId,
-          similarUserId: otherUser.id,
-          similarityScore
-        });
-      }
-    }
-    
-    // Store all similarities
-    const storedSimilarities: UserSimilarity[] = [];
-    for (const sim of similarities) {
-      const stored = await storage.updateUserSimilarity(
-        sim.userId,
-        sim.similarUserId,
-        sim.similarityScore
-      );
-      storedSimilarities.push(stored);
-    }
-    
-    // Sort by similarity score (highest first)
-    return storedSimilarities.sort((a, b) => 
-      parseFloat(String(b.similarityScore)) - parseFloat(String(a.similarityScore))
-    );
-  } catch (error) {
-    console.error(`Error finding similar users for user ${userId}:`, error);
-    return [];
-  }
-}
-
-/**
- * Get product recommendations based on similar users' purchases
- */
-export async function getCollaborativeRecommendations(
-  userId: number, 
-  limit: number = 10
-): Promise<Product[]> {
-  try {
-    // Get user's purchase history
-    const userPurchases = await storage.getPurchaseHistory(userId);
-    const purchasedProductIds = new Set(userPurchases.map(p => p.productId));
-    
-    // Get similar users
-    const similarUsers = await storage.getSimilarUsers(userId, 10);
-    
-    if (similarUsers.length === 0) {
-      return []; // No similar users found
-    }
-    
-    // Create a weighted map of product recommendations
-    // Products purchased by more similar users get higher scores
-    const productScores = new Map<number, number>();
-    
-    for (const similarUser of similarUsers) {
-      const similarity = parseFloat(String(similarUser.similarityScore));
-      const similarUserPurchases = await storage.getPurchaseHistory(similarUser.similarUserId);
+      // Extract product IDs purchased by each user
+      const productIds1 = new Set(userPurchases1.map(p => p.productId));
+      const productIds2 = new Set(userPurchases2.map(p => p.productId));
       
-      for (const purchase of similarUserPurchases) {
-        // Skip products the user has already purchased
-        if (purchasedProductIds.has(purchase.productId)) {
-          continue;
-        }
+      // Calculate intersection and union
+      const intersection = new Set([...productIds1].filter(x => productIds2.has(x)));
+      
+      // Union is the size of set1 + size of set2 - intersection
+      const union = productIds1.size + productIds2.size - intersection.size;
+      
+      // Calculate Jaccard similarity
+      if (union === 0) return 0; // No products purchased by either user
+      
+      return intersection.size / union;
+    } catch (error) {
+      console.error(`Error calculating similarity between users ${userId1} and ${userId2}:`, error);
+      return 0;
+    }
+  },
+  
+  /**
+   * Update similarities for all users
+   */
+  async updateAllUserSimilarities(): Promise<any[]> {
+    try {
+      // Get all users
+      const users = await storage.getAllUsers();
+      const similarities = [];
+      
+      // Calculate similarity for each pair of users
+      for (let i = 0; i < users.length; i++) {
+        const user1 = users[i];
         
-        // Add or update score (weighted by similarity)
-        const currentScore = productScores.get(purchase.productId) || 0;
-        productScores.set(purchase.productId, currentScore + similarity);
+        for (let j = i + 1; j < users.length; j++) {
+          const user2 = users[j];
+          
+          // Skip self-comparison
+          if (user1.id === user2.id) continue;
+          
+          // Calculate similarity
+          const similarityScore = await this.calculateJaccardSimilarity(user1.id, user2.id);
+          
+          // Only store if there's some similarity
+          if (similarityScore > 0) {
+            // Store the similarity (bidirectionally)
+            const similarity1 = await storage.updateUserSimilarity(user1.id, user2.id, similarityScore);
+            const similarity2 = await storage.updateUserSimilarity(user2.id, user1.id, similarityScore);
+            similarities.push(similarity1, similarity2);
+          }
+        }
       }
+      
+      return similarities;
+    } catch (error) {
+      console.error("Error updating all user similarities:", error);
+      return [];
     }
-    
-    // Convert to array and sort by score
-    const sortedProductIds = [...productScores.entries()]
-      .sort((a, b) => b[1] - a[1]) // Sort by score descending
-      .slice(0, limit) // Take only the top N products
-      .map(entry => entry[0]); // Get just the product IDs
-    
-    // Retrieve the actual products
-    const recommendations: Product[] = [];
-    for (const productId of sortedProductIds) {
-      const product = await storage.getProduct(productId);
-      if (product) {
-        recommendations.push(product);
+  },
+  
+  /**
+   * Calculate user similarities for a specific user
+   */
+  async calculateUserSimilarities(userId: number): Promise<any[]> {
+    try {
+      // Get all users except the target user
+      const allUsers = await storage.getAllUsers();
+      const otherUsers = allUsers.filter(user => user.id !== userId);
+      
+      const similarities = [];
+      
+      // Calculate similarity between target user and each other user
+      for (const otherUser of otherUsers) {
+        // Calculate similarity
+        const similarityScore = await this.calculateJaccardSimilarity(userId, otherUser.id);
+        
+        // Only store if there's some similarity
+        if (similarityScore > 0) {
+          // Store the similarity (bidirectionally)
+          const similarity = await storage.updateUserSimilarity(userId, otherUser.id, similarityScore);
+          similarities.push(similarity);
+        }
       }
+      
+      return similarities;
+    } catch (error) {
+      console.error(`Error calculating similarities for user ${userId}:`, error);
+      return [];
     }
-    
-    return recommendations;
-  } catch (error) {
-    console.error(`Error getting collaborative recommendations for user ${userId}:`, error);
-    return [];
-  }
-}
-
-/**
- * Update similarity scores for all users
- */
-export async function updateAllUserSimilarities(): Promise<void> {
-  try {
-    const allUsers = await storage.getAllUsers();
-    console.log(`Updating similarity scores for ${allUsers.length} users...`);
-    
-    for (const user of allUsers) {
-      await findSimilarUsers(user.id);
+  },
+  
+  /**
+   * Get product recommendations based on similar users' purchase history
+   */
+  async getCollaborativeRecommendations(userId: number, limit: number = 10): Promise<any[]> {
+    try {
+      // Get user's own purchase history
+      const userPurchases = await storage.getPurchaseHistory(userId);
+      const userProductIds = new Set(userPurchases.map(p => p.productId));
+      
+      // Get similar users
+      const similarUsers = await storage.getSimilarUsers(userId, 5); // Get top 5 similar users
+      
+      if (similarUsers.length === 0) {
+        return []; // No similar users found
+      }
+      
+      // Create a map to accumulate product scores
+      const productScores = new Map<number, number>();
+      
+      // For each similar user, get their purchases and weight by similarity
+      for (const similarity of similarUsers) {
+        const similarUserPurchases = await storage.getPurchaseHistory(similarity.similarUserId);
+        
+        // Only consider products the target user hasn't purchased yet
+        const newProducts = similarUserPurchases.filter(p => !userProductIds.has(p.productId));
+        
+        for (const purchase of newProducts) {
+          const currentScore = productScores.get(purchase.productId) || 0;
+          productScores.set(purchase.productId, currentScore + parseFloat(similarity.similarityScore));
+        }
+      }
+      
+      // Sort products by score (descending)
+      const sortedProducts = [...productScores.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+      
+      // Get full product details
+      const recommendedProducts = await Promise.all(
+        sortedProducts.map(async ([productId, score]) => {
+          const product = await storage.getProduct(productId);
+          return {
+            ...product,
+            collaborativeScore: score,
+          };
+        })
+      );
+      
+      return recommendedProducts;
+    } catch (error) {
+      console.error(`Error getting collaborative recommendations for user ${userId}:`, error);
+      return [];
     }
-    
-    console.log('User similarity update complete');
-  } catch (error) {
-    console.error('Error updating all user similarities:', error);
+  },
+  
+  /**
+   * Utility method to get all users
+   */
+  async getAllUsers(): Promise<any[]> {
+    // This would be implemented in a real system, for now we'll stub it
+    // It would call storage.getAllUsers() in a real implementation
+    try {
+      // This is a placeholder - in a real system, you would have a proper implementation
+      return await storage.getAllUsers();
+    } catch (error) {
+      console.error("Error getting all users:", error);
+      return [];
+    }
   }
-}
+};
