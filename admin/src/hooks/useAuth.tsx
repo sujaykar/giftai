@@ -1,86 +1,127 @@
-import { useState, useCallback, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import axios from 'axios';
 
-// Types
+// Define the User type
 interface User {
-  id: number;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: string;
 }
 
+// Define the auth context value type
 interface AuthContextType {
   user: User | null;
+  isLoading: boolean;
   isAuthenticated: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<boolean>;
 }
 
-// Create context
-const AuthContext = createContext<AuthContextType | null>(null);
+// Create the auth context with a default value
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  login: async () => ({ success: false }),
+  logout: async () => {},
+});
 
-// Provider component
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+// Auth provider component
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+  // Function to check if user is logged in
+  const checkAuthStatus = async () => {
     try {
-      setError(null);
-      const response = await axios.post('/api/admin/auth/login', { email, password });
-      setUser(response.data.user);
-      return true;
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
-      return false;
-    }
-  }, []);
+      setIsLoading(true);
+      // In a real implementation, we would fetch the current user from the API
+      // const response = await axios.get('/api/admin/auth/current-user');
+      // setUser(response.data);
 
-  const logout = useCallback(async (): Promise<void> => {
-    try {
-      await axios.post('/api/admin/auth/logout');
-      setUser(null);
-    } catch (err) {
-      console.error('Logout failed', err);
-    }
-  }, []);
-
-  const checkAuth = useCallback(async (): Promise<boolean> => {
-    try {
-      const response = await axios.get('/api/admin/auth/user');
-      if (response.data) {
-        setUser(response.data);
-        return true;
+      // For demo purposes, check localStorage
+      const storedUser = localStorage.getItem('adminUser');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
       }
-      return false;
-    } catch (err) {
+    } catch (error) {
+      console.error('Auth status check failed:', error);
       setUser(null);
-      return false;
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
-
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    error,
-    login,
-    logout,
-    checkAuth,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // Check auth status on component mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // Login function
+  const login = async (email: string, password: string) => {
+    try {
+      // In a real implementation, we would call the API for authentication
+      // const response = await axios.post('/api/admin/auth/login', { email, password });
+      // const userData = response.data;
+      // setUser(userData);
+      // localStorage.setItem('adminUser', JSON.stringify(userData));
+
+      // For demo purposes, use hardcoded admin credentials
+      if (email === 'admin@giftai.com' && password === 'admin123') {
+        const mockUser = {
+          id: '1',
+          email: 'admin@giftai.com',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin',
+        };
+        setUser(mockUser);
+        localStorage.setItem('adminUser', JSON.stringify(mockUser));
+        return { success: true };
+      }
+      
+      return { success: false, message: 'Invalid email or password' };
+    } catch (error: any) {
+      console.error('Login failed:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'An error occurred during login' 
+      };
+    }
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      // In a real implementation, we would call the API to logout
+      // await axios.post('/api/admin/auth/logout');
+      
+      // For demo purposes, just remove from localStorage
+      localStorage.removeItem('adminUser');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Hook for easy context use
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);
 
 export default useAuth;

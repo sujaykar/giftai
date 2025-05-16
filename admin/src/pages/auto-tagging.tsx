@@ -1,416 +1,452 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Play, Search, AlertCircle, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
+import { Sparkles, ShoppingBag, Check, AlertTriangle, Loader2, ArrowRight } from 'lucide-react';
 
-interface Product {
-  id: number;
-  name: string;
-  category: string | null;
-  description: string | null;
-  lastTagged: string | null;
-  tagCount: number;
-}
+// Sample products data
+const sampleProducts = [
+  { id: 1, name: 'Wireless Headphones', description: 'High-quality wireless headphones with noise cancellation.', price: '$129.99', imageUrl: 'https://example.com/headphones.jpg' },
+  { id: 2, name: 'Leather Wallet', description: 'Genuine leather wallet with multiple card slots.', price: '$49.99', imageUrl: 'https://example.com/wallet.jpg' },
+  { id: 3, name: 'Fitness Tracker', description: 'Water-resistant fitness tracker with heart rate monitor.', price: '$89.99', imageUrl: 'https://example.com/fitness.jpg' },
+  { id: 4, name: 'Coffee Maker', description: 'Programmable coffee maker with thermal carafe.', price: '$79.99', imageUrl: 'https://example.com/coffee.jpg' },
+  { id: 5, name: 'Yoga Mat', description: 'Premium non-slip yoga mat with carrying strap.', price: '$35.99', imageUrl: 'https://example.com/yoga.jpg' },
+  { id: 6, name: 'Smart Watch', description: 'Smart watch with fitness tracking and notifications.', price: '$199.99', imageUrl: 'https://example.com/smartwatch.jpg' },
+  { id: 7, name: 'Bluetooth Speaker', description: 'Portable bluetooth speaker with 12-hour battery life.', price: '$69.99', imageUrl: 'https://example.com/speaker.jpg' },
+  { id: 8, name: 'Digital Camera', description: 'High-resolution digital camera with optical zoom.', price: '$449.99', imageUrl: 'https://example.com/camera.jpg' },
+];
 
-interface TaggingJob {
-  id: number;
-  productId: number;
-  productName: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  tagCount: number;
-  createdAt: string;
-  completedAt: string | null;
-  errorMessage: string | null;
-}
+// Sample tag types to include
+const tagTypes = [
+  { id: 'category', label: 'Categories', description: 'Product category classifications', selected: true },
+  { id: 'interest', label: 'Interests', description: 'Related interests and hobbies', selected: true },
+  { id: 'occasion', label: 'Occasions', description: 'Suitable gift occasions', selected: true },
+  { id: 'price_range', label: 'Price Ranges', description: 'Price category classification', selected: true },
+  { id: 'age_group', label: 'Age Groups', description: 'Suitable age ranges', selected: false },
+  { id: 'sentiment', label: 'Sentiments', description: 'Emotional associations', selected: false },
+];
+
+// Sample batch processing results
+const sampleResults = {
+  processed: 0,
+  total: 8,
+  successCount: 0,
+  errorCount: 0,
+  inProgress: false,
+  results: [] as any[],
+};
 
 const AutoTagging = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(sampleProducts);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [taggingJobs, setTaggingJobs] = useState<TaggingJob[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [jobsLoading, setJobsLoading] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [tagTypesToGenerate, setTagTypesToGenerate] = useState(tagTypes);
+  const [processingResults, setProcessingResults] = useState(sampleResults);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(0.7);
 
-  // Load products and tagging jobs on component mount
   useEffect(() => {
-    fetchProducts();
-    fetchTaggingJobs();
+    const fetchData = async () => {
+      try {
+        // In a real implementation, we would fetch data from the API
+        // const response = await axios.get('/api/admin/products?untagged=true');
+        // setProducts(response.data);
+
+        // Using sample data for now
+        setProducts(sampleProducts);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  // Auto-refresh job status every 10 seconds
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (taggingJobs.some(job => job.status === 'pending' || job.status === 'processing')) {
-        fetchTaggingJobs();
-      }
-    }, 10000);
-
-    return () => clearInterval(intervalId);
-  }, [taggingJobs]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      // In a real implementation, this would fetch from API
-      // const { data } = await axios.get('/api/admin/products/tagging-candidates');
-      // setProducts(data);
-      
-      // Sample data
-      setProducts([
-        { id: 1, name: 'Leather Wallet', category: 'Accessories', description: 'Premium leather wallet with card slots', lastTagged: '2023-06-15', tagCount: 8 },
-        { id: 2, name: 'Wireless Earbuds', category: 'Electronics', description: 'High-quality wireless earbuds with noise cancellation', lastTagged: null, tagCount: 0 },
-        { id: 3, name: 'Scented Candle Set', category: 'Home Decor', description: 'Set of 3 scented candles in different fragrances', lastTagged: '2023-05-20', tagCount: 5 },
-        { id: 4, name: 'Fitness Watch', category: 'Electronics', description: 'Smart fitness watch with heart rate monitor', lastTagged: null, tagCount: 0 },
-        { id: 5, name: 'Coffee Subscription', category: 'Food & Drink', description: 'Monthly subscription of premium coffee beans', lastTagged: '2023-04-10', tagCount: 3 },
-        { id: 6, name: 'Desktop Plant', category: 'Home Decor', description: 'Small succulent plant in decorative pot', lastTagged: null, tagCount: 0 },
-        { id: 7, name: 'Portable Bluetooth Speaker', category: 'Electronics', description: 'Waterproof portable speaker with 20-hour battery life', lastTagged: '2023-05-05', tagCount: 6 },
-        { id: 8, name: 'Gourmet Chocolate Box', category: 'Food & Drink', description: 'Assortment of premium chocolates from around the world', lastTagged: null, tagCount: 0 },
-        { id: 9, name: 'Yoga Mat', category: 'Sports & Fitness', description: 'Non-slip yoga mat with carrying strap', lastTagged: '2023-06-01', tagCount: 4 },
-        { id: 10, name: 'Stainless Steel Water Bottle', category: 'Accessories', description: 'Insulated bottle that keeps drinks cold for 24 hours', lastTagged: null, tagCount: 0 },
-      ]);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setErrorMessage('Failed to load products. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTaggingJobs = async () => {
-    try {
-      setJobsLoading(true);
-      // In a real implementation, this would fetch from API
-      // const { data } = await axios.get('/api/admin/auto-tagging/jobs');
-      // setTaggingJobs(data);
-      
-      // Sample data
-      setTaggingJobs([
-        { id: 101, productId: 1, productName: 'Leather Wallet', status: 'completed', tagCount: 8, createdAt: '2023-06-15T10:30:00Z', completedAt: '2023-06-15T10:32:15Z', errorMessage: null },
-        { id: 102, productId: 3, productName: 'Scented Candle Set', status: 'completed', tagCount: 5, createdAt: '2023-05-20T14:15:00Z', completedAt: '2023-05-20T14:17:30Z', errorMessage: null },
-        { id: 103, productId: 7, productName: 'Portable Bluetooth Speaker', status: 'completed', tagCount: 6, createdAt: '2023-05-05T09:45:00Z', completedAt: '2023-05-05T09:47:22Z', errorMessage: null },
-        { id: 104, productId: 5, productName: 'Coffee Subscription', status: 'failed', tagCount: 0, createdAt: '2023-04-10T11:20:00Z', completedAt: '2023-04-10T11:21:05Z', errorMessage: 'Failed to process product description. Please ensure the product has a valid description.' },
-        { id: 105, productId: 9, productName: 'Yoga Mat', status: 'completed', tagCount: 4, createdAt: '2023-06-01T16:10:00Z', completedAt: '2023-06-01T16:12:35Z', errorMessage: null },
-      ]);
-    } catch (error) {
-      console.error('Error fetching tagging jobs:', error);
-    } finally {
-      setJobsLoading(false);
-    }
-  };
-
-  const handleProductSelect = (productId: number) => {
-    setSelectedProducts(prev => {
-      if (prev.includes(productId)) {
-        return prev.filter(id => id !== productId);
-      } else {
-        return [...prev, productId];
-      }
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (selectedProducts.length === filteredProducts.length) {
+  const handleSelectAllProducts = () => {
+    if (selectedProducts.length === products.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(product => product.id));
+      setSelectedProducts(products.map(product => product.id));
     }
   };
 
-  const startAutoTagging = async () => {
+  const handleSelectProduct = (productId: number) => {
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+    } else {
+      setSelectedProducts([...selectedProducts, productId]);
+    }
+  };
+
+  const handleTagTypeToggle = (tagTypeId: string) => {
+    setTagTypesToGenerate(
+      tagTypesToGenerate.map(type => 
+        type.id === tagTypeId ? { ...type, selected: !type.selected } : type
+      )
+    );
+  };
+
+  const handleStartTagging = async () => {
     if (selectedProducts.length === 0) {
-      setErrorMessage('Please select at least one product to tag.');
+      alert('Please select at least one product');
+      return;
+    }
+
+    if (!tagTypesToGenerate.some(type => type.selected)) {
+      alert('Please select at least one tag type');
       return;
     }
 
     try {
-      setLoading(true);
-      setSuccessMessage(null);
-      setErrorMessage(null);
-      
-      // In a real implementation, this would call the API
-      // await axios.post('/api/admin/auto-tagging/start', { productIds: selectedProducts });
-      
-      // Mock the creation of new tagging jobs
-      const newJobs: TaggingJob[] = selectedProducts.map(productId => {
+      setProcessingResults({
+        ...processingResults,
+        inProgress: true,
+        processed: 0,
+        total: selectedProducts.length,
+        successCount: 0,
+        errorCount: 0,
+        results: [],
+      });
+
+      // Simulate processing with a mock implementation
+      const selectedTagTypes = tagTypesToGenerate
+        .filter(type => type.selected)
+        .map(type => type.id);
+
+      // In a real implementation, we would call the API
+      // const response = await axios.post('/api/admin/auto-tag', {
+      //   productIds: selectedProducts,
+      //   tagTypes: selectedTagTypes,
+      //   confidenceThreshold,
+      // });
+
+      // Simulate processing each product with a delay
+      for (let i = 0; i < selectedProducts.length; i++) {
+        const productId = selectedProducts[i];
         const product = products.find(p => p.id === productId);
-        return {
-          id: Math.floor(Math.random() * 1000) + 200,
+        
+        // Simulate a delay for processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Generate random success/error to simulate the process
+        const isSuccess = Math.random() > 0.2; // 80% success rate for simulation
+        
+        const generatedTags = isSuccess 
+          ? ['Electronics', 'Music', 'Birthday', '$100-$200'].slice(0, Math.floor(Math.random() * 4) + 1)
+          : [];
+
+        const newResult = {
           productId,
           productName: product?.name || '',
-          status: 'pending',
-          tagCount: 0,
-          createdAt: new Date().toISOString(),
-          completedAt: null,
-          errorMessage: null
+          success: isSuccess,
+          error: isSuccess ? null : 'Failed to generate tags for this product',
+          tags: generatedTags,
         };
-      });
-      
-      setTaggingJobs(prev => [...newJobs, ...prev]);
-      setSuccessMessage(`Started auto-tagging for ${selectedProducts.length} product(s).`);
-      setSelectedProducts([]);
-      
-      // Simulate job status changes for demo purposes
-      setTimeout(() => {
-        setTaggingJobs(prev => 
-          prev.map(job => {
-            if (newJobs.some(newJob => newJob.id === job.id)) {
-              return { ...job, status: 'processing' };
-            }
-            return job;
-          })
-        );
-        
-        // Simulate completion after additional time
-        setTimeout(() => {
-          setTaggingJobs(prev => 
-            prev.map(job => {
-              if (newJobs.some(newJob => newJob.id === job.id)) {
-                const success = Math.random() > 0.2; // 80% success rate
-                return { 
-                  ...job, 
-                  status: success ? 'completed' : 'failed',
-                  tagCount: success ? Math.floor(Math.random() * 8) + 3 : 0,
-                  completedAt: new Date().toISOString(),
-                  errorMessage: success ? null : 'Error processing product. Please check the product description and try again.'
-                };
-              }
-              return job;
-            })
-          );
-        }, 8000);
-      }, 4000);
-      
+
+        setProcessingResults(prev => ({
+          ...prev,
+          processed: i + 1,
+          successCount: isSuccess ? prev.successCount + 1 : prev.successCount,
+          errorCount: isSuccess ? prev.errorCount : prev.errorCount + 1,
+          results: [...prev.results, newResult],
+        }));
+      }
+
+      // Finish processing
+      setProcessingResults(prev => ({
+        ...prev,
+        inProgress: false,
+      }));
+
     } catch (error) {
       console.error('Error starting auto-tagging:', error);
-      setErrorMessage('Failed to start auto-tagging process. Please try again.');
-    } finally {
-      setLoading(false);
+      setProcessingResults({
+        ...processingResults,
+        inProgress: false,
+      });
     }
   };
 
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (product.category && product.category.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  const pendingJobCount = taggingJobs.filter(job => job.status === 'pending' || job.status === 'processing').length;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Auto Tagging</h1>
-        <p className="text-muted-foreground">
-          Automatically generate tags for products using AI
-        </p>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">AI Auto-Tagging</h1>
+        <div className="text-sm text-gray-500">
+          Auto-generate product tags using the AI engine
+        </div>
       </div>
-      
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
-          <div className="flex">
-            <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-            <p className="text-green-700">{successMessage}</p>
-          </div>
-        </div>
-      )}
-      
-      {errorMessage && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-          <div className="flex">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-            <p className="text-red-700">{errorMessage}</p>
-          </div>
-        </div>
-      )}
 
-      <div className="grid gap-6 md:grid-cols-12">
-        {/* Products Table */}
-        <div className="md:col-span-7 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium">Products</h2>
-            <div className="flex space-x-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="pl-8 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Product Selection */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-800 flex items-center">
+              <ShoppingBag className="mr-2" size={18} /> Product Selection
+            </h2>
+            <div className="flex items-center">
+              <span className="text-sm text-gray-500 mr-2">
+                {selectedProducts.length} of {products.length} selected
+              </span>
               <button
-                onClick={startAutoTagging}
-                disabled={loading || selectedProducts.length === 0}
-                className={`inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90 ${
-                  (loading || selectedProducts.length === 0) ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
+                onClick={handleSelectAllProducts}
+                className="text-sm text-primary hover:text-primary/80 font-medium"
               >
-                {loading ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-4 w-4" />
-                    Start Auto-Tagging
-                  </>
-                )}
+                {selectedProducts.length === products.length ? 'Deselect All' : 'Select All'}
               </button>
             </div>
           </div>
-          
-          <div className="border rounded-md">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="px-4 py-3 text-left text-sm font-medium">
+
+          <div className="overflow-y-auto max-h-80">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="w-16 px-4 py-3"></th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {products.map((product) => (
+                  <tr 
+                    key={product.id} 
+                    className={`hover:bg-gray-50 ${selectedProducts.includes(product.id) ? 'bg-blue-50' : ''}`}
+                    onClick={() => handleSelectProduct(product.id)}
+                  >
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <input
                           type="checkbox"
-                          className="rounded border-gray-300 text-primary focus:ring-primary mr-2"
-                          checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-                          onChange={handleSelectAll}
+                          checked={selectedProducts.includes(product.id)}
+                          onChange={() => {}}
+                          className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
                         />
-                        Product
                       </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Category</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Tags</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Last Tagged</th>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {product.name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500 max-w-md truncate">
+                      {product.description}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
+                      {product.price}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {loading && filteredProducts.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center">
-                        <RefreshCw className="h-6 w-6 animate-spin mx-auto text-primary" />
-                        <p className="mt-2 text-muted-foreground">Loading products...</p>
-                      </td>
-                    </tr>
-                  ) : filteredProducts.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                        No products found matching your search
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredProducts.map((product) => (
-                      <tr key={product.id} className="border-b hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              className="rounded border-gray-300 text-primary focus:ring-primary mr-2"
-                              checked={selectedProducts.includes(product.id)}
-                              onChange={() => handleProductSelect(product.id)}
-                            />
-                            <span className="font-medium">{product.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{product.category || '-'}</td>
-                        <td className="px-4 py-3 text-sm">{product.tagCount}</td>
-                        <td className="px-4 py-3 text-sm">
-                          {product.lastTagged ? new Date(product.lastTagged).toLocaleDateString() : 'Never'}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Recent Jobs */}
-        <div className="md:col-span-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium">Recent Jobs</h2>
-            <div className="flex items-center space-x-1">
-              {pendingJobCount > 0 && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {pendingJobCount} running
-                </span>
-              )}
-              <button 
-                onClick={fetchTaggingJobs}
-                className="ml-2 p-1 rounded-md hover:bg-gray-100"
-              >
-                <RefreshCw className="h-4 w-4 text-gray-500" />
-              </button>
-            </div>
+        {/* Tag Type Selection */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="mb-4">
+            <h2 className="font-semibold text-gray-800 flex items-center">
+              <Sparkles className="mr-2" size={18} /> Tag Types to Generate
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Select which types of tags to automatically generate
+            </p>
           </div>
-          
-          <div className="border rounded-md overflow-hidden">
-            {jobsLoading ? (
-              <div className="flex justify-center items-center py-8">
-                <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                <span className="ml-2">Loading jobs...</span>
-              </div>
-            ) : taggingJobs.length === 0 ? (
-              <div className="p-6 text-center text-muted-foreground">
-                No auto-tagging jobs found
-              </div>
-            ) : (
-              <div className="overflow-y-auto max-h-[500px]">
-                {taggingJobs.map((job) => (
-                  <div key={job.id} className="border-b last:border-0 p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-medium">{job.productName}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(job.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        {job.status === 'pending' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Pending
-                          </span>
-                        )}
-                        {job.status === 'processing' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                            Processing
-                          </span>
-                        )}
-                        {job.status === 'completed' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Completed
-                          </span>
-                        )}
-                        {job.status === 'failed' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Failed
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {job.status === 'completed' && (
-                      <div className="mt-2 text-sm">
-                        <span className="text-green-600">{job.tagCount} tags</span> generated successfully
-                      </div>
-                    )}
-                    
-                    {job.status === 'failed' && job.errorMessage && (
-                      <div className="mt-2 text-sm text-red-600">
-                        {job.errorMessage}
-                      </div>
-                    )}
+
+          <div className="space-y-4">
+            {tagTypesToGenerate.map((tagType) => (
+              <div
+                key={tagType.id}
+                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                  tagType.selected
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => handleTagTypeToggle(tagType.id)}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="font-medium">{tagType.label}</div>
+                  <div
+                    className={`h-5 w-5 rounded-full flex items-center justify-center ${
+                      tagType.selected ? 'bg-primary text-white' : 'bg-gray-200'
+                    }`}
+                  >
+                    {tagType.selected && <Check size={14} />}
                   </div>
-                ))}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">{tagType.description}</div>
               </div>
-            )}
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Confidence Threshold: {confidenceThreshold * 100}%
+            </label>
+            <input
+              type="range"
+              min="0.5"
+              max="0.95"
+              step="0.05"
+              value={confidenceThreshold}
+              onChange={(e) => setConfidenceThreshold(parseFloat(e.target.value))}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>50%</span>
+              <span>95%</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Only tags with confidence scores above this threshold will be saved
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={handleStartTagging}
+              disabled={processingResults.inProgress || selectedProducts.length === 0}
+              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 flex items-center justify-center"
+            >
+              {processingResults.inProgress ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={16} />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2" size={16} />
+                  Start Auto-Tagging
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Processing Results */}
+      {(processingResults.inProgress || processingResults.processed > 0) && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="font-semibold text-gray-800 mb-4">Processing Results</h2>
+
+          {/* Progress Indicator */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-sm text-gray-500">
+                Processing {processingResults.processed} of {processingResults.total} products
+              </div>
+              <div className="text-sm font-medium">
+                {Math.round((processingResults.processed / processingResults.total) * 100)}%
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-primary h-2.5 rounded-full"
+                style={{
+                  width: `${Math.round(
+                    (processingResults.processed / processingResults.total) * 100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-xl font-bold">{processingResults.processed}</div>
+              <div className="text-sm text-gray-500">Products Processed</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-xl font-bold text-green-600">{processingResults.successCount}</div>
+              <div className="text-sm text-gray-500">Successful</div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <div className="text-xl font-bold text-red-600">{processingResults.errorCount}</div>
+              <div className="text-sm text-gray-500">Failed</div>
+            </div>
+          </div>
+
+          {/* Results Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Generated Tags
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {processingResults.results.map((result, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {result.productName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {result.success ? (
+                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          <Check size={14} className="mr-1" /> Success
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                          <AlertTriangle size={14} className="mr-1" /> Failed
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {result.success ? (
+                        <div className="flex flex-wrap gap-1">
+                          {result.tags.map((tag: string, tagIndex: number) => (
+                            <span
+                              key={tagIndex}
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-red-500">{result.error}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Final Actions */}
+          {!processingResults.inProgress && processingResults.processed === processingResults.total && (
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setProcessingResults(sampleResults)}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mr-3"
+              >
+                Clear Results
+              </button>
+              <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary flex items-center">
+                View Tagged Products <ArrowRight className="ml-2" size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
