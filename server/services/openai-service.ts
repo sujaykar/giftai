@@ -8,49 +8,101 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+interface RecipientInput {
+  name: string;
+  age?: number | null;
+  gender?: string | null;
+  relationship: string;
+}
+
+interface RecommendationInput {
+  recipient: RecipientInput;
+  interests: string[];
+  budget?: number;
+  mood?: string | null;
+  occasion?: string | null;
+}
+
+interface ProductRecommendation {
+  name: string;
+  price: string;
+  description: string;
+  imageUrl?: string;
+  purchaseUrl?: string;
+}
+
+interface RelationshipRecommendation {
+  product: ProductRecommendation;
+  reasoning: string;
+  reasonText: string;
+  relationshipContext: string;
+  mood?: string;
+  occasionRelevance?: string;
+  category: string;
+}
+
 /**
  * Generate gift recommendations based on relationship dynamics
  */
 export async function generateRelationshipBasedRecommendations(
-  relationship: string,
-  recipientDetails: any,
-  budget: number,
-  mood: string = ""
-): Promise<any[]> {
+  input: RecommendationInput
+): Promise<RelationshipRecommendation[]> {
   try {
     // Prepare recipient details for the prompt
-    const interests = recipientDetails.interests?.join(", ") || "various interests";
-    const age = recipientDetails.age || "unknown age";
-    const gender = recipientDetails.gender || "unspecified gender";
+    const { recipient, interests, budget, mood, occasion } = input;
+    const interestsText = interests.length > 0 ? interests.join(", ") : "various interests";
+    const ageText = recipient.age ? `${recipient.age}-year-old` : "unknown age";
+    const genderText = recipient.gender || "unspecified gender";
     
-    // Include mood in the prompt if specified
+    // Include mood and occasion in the prompt if specified
     const moodPrompt = mood 
       ? `The gift should evoke a ${mood} mood or feeling.` 
       : "";
+      
+    const occasionPrompt = occasion
+      ? `The gift is for the occasion: ${occasion}.`
+      : "The gift is for no specific occasion.";
+      
+    const budgetPrompt = budget
+      ? `My budget is around $${budget}.`
+      : "My budget is flexible.";
 
     // Craft a detailed prompt for the API
     const prompt = `
-      I need gift recommendations for a ${relationship} relationship. 
+      I need gift recommendations for ${recipient.name}, who is my ${recipient.relationship}. 
       
-      The recipient is a ${age}-year-old ${gender} who enjoys ${interests}.
-      My budget is around $${budget}.
+      The recipient is a ${ageText} ${genderText} who enjoys ${interestsText}.
+      ${budgetPrompt}
       ${moodPrompt}
+      ${occasionPrompt}
       
-      Please suggest 3 thoughtful gifts that could strengthen our ${relationship} relationship.
+      Please suggest 3 thoughtful gifts that could strengthen our ${recipient.relationship} relationship.
       
       For each gift, provide:
       1. Gift name
       2. Price estimate (in USD)
-      3. Why it's suitable for this relationship type
-      4. Where it can be purchased
-      5. A brief description
+      3. Why it's suitable for this relationship type (detailed reasoning)
+      4. A brief summary sentence explaining why it's appropriate (concise reason)
+      5. A brief description of the product
+      6. Product category
       
-      Format your response as a JSON array with objects containing these fields:
-      - name
-      - price
-      - relationshipReasoning
-      - purchaseLocation
-      - description
+      Format your response as a JSON object with a "recommendations" array containing these fields for each recommendation:
+      {
+        "recommendations": [
+          {
+            "product": {
+              "name": "string",
+              "price": "string",
+              "description": "string"
+            },
+            "reasoning": "string", 
+            "reasonText": "string",
+            "relationshipContext": "string",
+            "mood": "string",
+            "category": "string"
+          }
+        ]
+      }
     `;
 
     // Call OpenAI API
@@ -66,7 +118,8 @@ export async function generateRelationshipBasedRecommendations(
           content: prompt
         }
       ],
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
+      temperature: 0.7
     });
 
     // Parse the response
@@ -76,7 +129,15 @@ export async function generateRelationshipBasedRecommendations(
     }
 
     const result = JSON.parse(content);
-    return result.recommendations || [];
+    
+    // Add mood and occasion to each recommendation if provided
+    const recommendations = (result.recommendations || []).map((rec: any) => ({
+      ...rec,
+      mood: mood || undefined,
+      occasionRelevance: occasion || undefined
+    }));
+    
+    return recommendations;
   } catch (error) {
     console.error("Error generating relationship-based recommendations:", error);
     throw error;

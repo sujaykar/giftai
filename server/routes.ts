@@ -5,6 +5,7 @@ import { authController } from "./controllers/auth-controller";
 import { recipientController } from "./controllers/recipient-controller";
 import { recommendationController } from "./controllers/recommendation-controller";
 import { productController } from "./controllers/product-controller";
+import { hybridRecommendationController } from "./controllers/hybrid-recommendation-controller";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import passport from "passport";
@@ -110,6 +111,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Relationship-based recommendation routes
   app.post("/api/recommendations/relationship", isAuthenticated, recommendationController.generateRelationshipRecommendations);
   app.post("/api/recommendations/analyze-gift", isAuthenticated, recommendationController.analyzeGiftForRelationship);
+  
+  // Enhanced Recommendation System routes
+  app.post("/api/hybrid-recommendations", isAuthenticated, hybridRecommendationController.getHybridRecommendations);
+  app.post("/api/ai-recommendations", isAuthenticated, hybridRecommendationController.getAIRecommendations);
+  app.post("/api/content-recommendations", isAuthenticated, hybridRecommendationController.getContentBasedRecommendations);
+  app.post("/api/product-tags/auto-generate", isAuthenticated, hybridRecommendationController.autoTagProducts);
+  app.post("/api/user-similarities/update", isAuthenticated, hybridRecommendationController.updateUserSimilarities);
   
   // Product routes
   app.get("/api/products", isAuthenticated, productController.getProducts);
