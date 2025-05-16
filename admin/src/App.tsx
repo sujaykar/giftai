@@ -1,67 +1,90 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { Toaster } from '@/components/ui/toaster'
-import Login from '@/pages/login'
-import Dashboard from '@/pages/dashboard'
-import ProductTags from '@/pages/product-tags'
-import AutoTagging from '@/pages/auto-tagging'
-import { useAuth } from '@/hooks/useAuth'
-import Layout from '@/components/layout'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuth } from './hooks/useAuth';
+import Layout from './components/layout';
+import Login from './pages/login';
+import Dashboard from './pages/dashboard';
+import ProductTags from './pages/product-tags';
+import AutoTagging from './pages/auto-tagging';
 
-type PrivateRouteProps = {
-  children: React.ReactNode
-  redirectTo: string
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+interface PrivateRouteProps {
+  children: React.ReactNode;
 }
 
-const PrivateRoute = ({ children, redirectTo }: PrivateRouteProps) => {
-  const { isAuthenticated, isLoading } = useAuth()
-  
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+      </div>
+    );
   }
-  
-  return isAuthenticated ? <>{children}</> : <Navigate to={redirectTo} />
-}
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route 
-          path="/" 
-          element={
-            <PrivateRoute redirectTo="/login">
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/product-tags" 
-          element={
-            <PrivateRoute redirectTo="/login">
-              <Layout>
-                <ProductTags />
-              </Layout>
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/auto-tagging" 
-          element={
-            <PrivateRoute redirectTo="/login">
-              <Layout>
-                <AutoTagging />
-              </Layout>
-            </PrivateRoute>
-          } 
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Toaster />
-    </Router>
-  )
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          
+          <Route 
+            path="/" 
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </PrivateRoute>
+            } 
+          />
+          
+          <Route 
+            path="/product-tags" 
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <ProductTags />
+                </Layout>
+              </PrivateRoute>
+            } 
+          />
+          
+          <Route 
+            path="/auto-tagging" 
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <AutoTagging />
+                </Layout>
+              </PrivateRoute>
+            } 
+          />
+          
+          {/* Catch-all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </QueryClientProvider>
+  );
 }
 
-export default App
+export default App;
