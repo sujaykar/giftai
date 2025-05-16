@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
+import { RelationshipGiftSelector } from "./components/relationship-gift-selector";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);

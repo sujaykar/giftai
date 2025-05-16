@@ -51,8 +51,7 @@ export const recommendationController = {
           price: rec.price,
           category: "Relationship",
           imageUrl: null,
-          purchaseUrl: rec.purchaseLocation,
-          uuid: crypto.randomUUID()
+          purchaseUrl: rec.purchaseLocation
         });
         
         // Create recommendation linked to the product
@@ -61,11 +60,11 @@ export const recommendationController = {
           recipientId: recipient.id,
           productId: product.id,
           status: "new",
-          confidenceScore: 0.9,
+          confidenceScore: "0.9",
+          recommendationScore: "0.9",
           reasonText: rec.relationshipReasoning,
           relationshipContext: relationship,
-          mood: mood || null,
-          uuid: crypto.randomUUID()
+          mood: mood || null
         });
         
         savedRecommendations.push({
@@ -224,7 +223,8 @@ export const recommendationController = {
         // Send notification email
         try {
           await sendRecommendationEmail(userId, recipient, savedRecommendations.length);
-        } catch (emailError) {
+        } catch (error) {
+          const emailError = error as Error;
           console.error("Failed to send recommendation email:", emailError);
           // Update notification log with error
           await storage.createNotificationLog({

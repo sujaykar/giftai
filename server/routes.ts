@@ -107,6 +107,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/recipients/:id/recommendations/generate", isAuthenticated, recommendationController.generateRecommendations);
   app.put("/api/recommendations/:id/status", isAuthenticated, recommendationController.updateRecommendationStatus);
   
+  // Relationship-based recommendation routes
+  app.post("/api/recommendations/relationship", isAuthenticated, recommendationController.generateRelationshipRecommendations);
+  app.post("/api/recommendations/analyze-gift", isAuthenticated, recommendationController.analyzeGiftForRelationship);
+  
   // Product routes
   app.get("/api/products", isAuthenticated, productController.getProducts);
   app.get("/api/products/:id", isAuthenticated, productController.getProductById);
