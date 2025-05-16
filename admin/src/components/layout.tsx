@@ -1,113 +1,157 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Database, 
-  Tag, 
-  Home, 
-  LogOut, 
-  Package, 
-  Settings, 
-  Zap 
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { Database, Tag, Zap, LogOut, BarChart } from 'lucide-react'
+import { useState } from 'react'
+
+// Navigation items
+const navItems = [
+  { title: 'Dashboard', icon: BarChart, path: '/' },
+  { title: 'Product Tags', icon: Tag, path: '/product-tags' },
+  { title: 'Auto-Tagging', icon: Zap, path: '/auto-tagging' }
+]
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const handleLogout = async () => {
-    await logout.mutateAsync();
-    navigate('/login');
-  };
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="hidden w-64 md:flex flex-col bg-white border-r">
-        <div className="p-4 h-16 flex items-center border-b">
-          <h1 className="text-xl font-bold text-blue-600">GIFT AI Admin</h1>
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar for desktop */}
+      <aside className="hidden w-64 border-r border-border bg-card md:block">
+        <div className="p-6">
+          <h1 className="text-xl font-bold gradient-text">GIFT AI Admin</h1>
         </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          <nav className="space-y-2">
-            <Link
-              to="/"
-              className={`flex items-center px-4 py-2 text-sm rounded-md ${
-                pathname === '/' 
-                  ? 'bg-blue-50 text-blue-700 font-medium' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Home className="mr-3 h-4 w-4" />
-              Dashboard
-            </Link>
-
-            <Link
-              to="/product-tags"
-              className={`flex items-center px-4 py-2 text-sm rounded-md ${
-                pathname === '/product-tags' 
-                  ? 'bg-blue-50 text-blue-700 font-medium' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Tag className="mr-3 h-4 w-4" />
-              Product Tags
-            </Link>
-
-            <Link
-              to="/auto-tagging"
-              className={`flex items-center px-4 py-2 text-sm rounded-md ${
-                pathname === '/auto-tagging' 
-                  ? 'bg-blue-50 text-blue-700 font-medium' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Zap className="mr-3 h-4 w-4" />
-              Auto Tagging
-            </Link>
-          </nav>
-        </div>
-
-        <div className="p-4 border-t">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
-              {user?.firstName?.charAt(0) || 'A'}
+        
+        <nav className="mt-6 flex flex-col space-y-1 px-4">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive = location.pathname === item.path
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-foreground hover:bg-muted'
+                }`}
+              >
+                <Icon className="mr-3 h-5 w-5" />
+                {item.title}
+              </Link>
+            )
+          })}
+        </nav>
+        
+        <div className="mt-auto p-4">
+          {user && (
+            <div className="mb-4 rounded-lg bg-card-gradient p-4">
+              <p className="text-sm font-medium text-foreground">{user.firstName} {user.lastName}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
-            </div>
-          </div>
+          )}
+          
           <button
-            onClick={handleLogout}
-            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100"
+            onClick={() => logout()}
+            className="flex w-full items-center rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
           >
-            <LogOut className="mr-3 h-4 w-4" />
+            <LogOut className="mr-3 h-5 w-5" />
             Logout
           </button>
         </div>
-      </div>
+      </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 md:h-16 border-b bg-white flex items-center justify-between px-4 md:px-6">
-          <div className="flex items-center md:hidden">
-            <h1 className="text-xl font-bold text-blue-600">GIFT AI Admin</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium">{user?.email}</span>
-          </div>
+      {/* Mobile header */}
+      <div className="flex flex-1 flex-col">
+        <header className="flex h-16 items-center justify-between border-b border-border px-6 md:hidden">
+          <h1 className="text-xl font-bold gradient-text">GIFT AI Admin</h1>
+          
+          <button
+            onClick={toggleMobileMenu}
+            className="rounded-md p-2 text-foreground hover:bg-muted"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              {mobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="border-b border-border bg-card md:hidden">
+            <nav className="flex flex-col space-y-1 p-4">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = location.pathname === item.path
+                
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                      isActive 
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-foreground hover:bg-muted'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon className="mr-3 h-5 w-5" />
+                    {item.title}
+                  </Link>
+                )
+              })}
+              
+              <button
+                onClick={() => {
+                  logout()
+                  setMobileMenuOpen(false)
+                }}
+                className="flex w-full items-center rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              >
+                <LogOut className="mr-3 h-5 w-5" />
+                Logout
+              </button>
+            </nav>
+          </div>
+        )}
+
+        {/* Main content */}
+        <main className="flex-1 p-6">
           {children}
         </main>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout

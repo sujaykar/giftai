@@ -3,99 +3,45 @@
 @tailwind utilities;
 
 :root {
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-focus: #60a5fa;
+  --primary: #4f46e5;
   --primary-content: #ffffff;
-  
-  --secondary: #f3f4f6;
-  --secondary-hover: #e5e7eb;
-  --secondary-focus: #d1d5db;
-  --secondary-content: #1f2937;
-  
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-focus: #6366f1;
+  --secondary: #f59e0b;
+  --secondary-content: #ffffff;
+  --accent: #10b981;
   --accent-content: #ffffff;
-  
-  --neutral: #1f2937;
-  --neutral-hover: #111827;
-  --neutral-focus: #374151;
-  --neutral-content: #ffffff;
-  
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --card: #ffffff;
+  --card-foreground: #1e293b;
+  --popover: #ffffff;
+  --popover-foreground: #1e293b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #4f46e5;
+  --error: #ef4444;
   --base-100: #ffffff;
-  --base-200: #f9fafb;
-  --base-300: #f3f4f6;
-  --base-content: #1f2937;
-  
-  --info: #2563eb;
-  --success: #16a34a;
-  --warning: #d97706;
-  --error: #dc2626;
-
-  --rounded-box: 0.5rem;
-  --rounded-btn: 0.25rem;
-  --rounded-badge: 1rem;
-  
-  --animation-btn: 0.3s;
-  --animation-input: 0.2s;
-  
-  --padding-card: 1.5rem;
-  --btn-text-case: normal;
+  --base-200: #f8fafc;
+  --base-300: #e2e8f0;
+  --base-content: #1e293b;
+  --rounded-btn: 0.5rem;
 }
 
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 min-h-screen;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-medium;
-  }
-
-  button, [type='button'], [type='reset'], [type='submit'] {
-    @apply font-medium;
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  min-height: 100vh;
+  background-color: var(--base-200);
+  color: var(--base-content);
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800;
-  }
-  
-  .btn-accent {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white;
-  }
-  
-  .btn-ghost {
-    @apply bg-transparent hover:bg-gray-100 text-gray-800;
-  }
-  
-  .card {
-    @apply bg-white shadow-sm rounded-lg border;
-  }
+.gradient-text {
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
 }
 
-/* scrollbar styles */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+.card-gradient {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(16, 185, 129, 0.1));
+  border-radius: var(--rounded-btn);
 }
