@@ -46,6 +46,10 @@ function App() {
     mood: "" // Added mood filter
   });
   
+  // For relationship-based gift recommendations
+  const [showRelationshipGiftSelector, setShowRelationshipGiftSelector] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  
   // Gift mood options
   const moodOptions = [
     { id: "thoughtful", name: "Thoughtful", description: "Meaningful gifts that show you care", emoji: "💭" },
@@ -1516,9 +1520,18 @@ function App() {
                   <option value="2">Michael Chen</option>
                   <option value="3">Sarah Johnson</option>
                 </select>
-                <button className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600">
-                  Generate New
-                </button>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setShowRelationshipGiftSelector(true)}
+                    className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 flex items-center"
+                  >
+                    <Sparkles className="mr-1 h-4 w-4" />
+                    AI Suggestions
+                  </button>
+                  <button className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600">
+                    Generate New
+                  </button>
+                </div>
               </div>
             </div>
             

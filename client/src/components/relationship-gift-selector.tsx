@@ -51,12 +51,10 @@ export function RelationshipGiftSelector({ onRecommendationsReceived }: Relation
     try {
       const recipientDetails = recipients.find(r => r.id === selectedRecipient);
       
-      const response = await apiRequest('/api/recommendations/relationship', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      const response = await apiRequest(
+        'POST',
+        '/api/recommendations/relationship',
+        {
           recipientId: selectedRecipient,
           relationship: selectedRelationship,
           budget: budget,
@@ -66,10 +64,12 @@ export function RelationshipGiftSelector({ onRecommendationsReceived }: Relation
             gender: 'unspecified', // mock data, should be retrieved from the API
             interests: ['Technology', 'Reading', 'Travel'] // mock data, should be retrieved from the API
           }
-        })
-      }) as any;
+        }
+      );
       
-      onRecommendationsReceived(response.recommendations);
+      const data = await response.json();
+      
+      onRecommendationsReceived(data.recommendations);
     } catch (error) {
       console.error('Error generating recommendations:', error);
       setError('Failed to generate recommendations. Please try again.');
