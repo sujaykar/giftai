@@ -6,6 +6,7 @@ import { recipientController } from "./controllers/recipient-controller";
 import { recommendationController } from "./controllers/recommendation-controller";
 import { productController } from "./controllers/product-controller";
 import { hybridRecommendationController } from "./controllers/hybrid-recommendation-controller";
+import { relationshipGiftController } from "./controllers/relationship-gift-controller";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import passport from "passport";
@@ -122,6 +123,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product routes
   app.get("/api/products", isAuthenticated, productController.getProducts);
   app.get("/api/products/:id", isAuthenticated, productController.getProductById);
+  
+  // Relationship-based gift suggestion routes
+  app.post("/api/recipients/:recipientId/relationship-gifts", isAuthenticated, relationshipGiftController.getRelationshipGiftSuggestions);
+  app.get("/api/recipients/:recipientId/relationship-analysis", isAuthenticated, relationshipGiftController.analyzeRelationship);
 
   // Stats routes
   app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
