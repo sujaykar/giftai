@@ -54,6 +54,19 @@ export default function RelationshipGiftsPage() {
           Back to Dashboard
         </Button>
       </div>
+      
+      {error && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <h3 className="text-amber-800 font-medium flex items-center">
+            <Heart className="h-5 w-5 mr-2 text-amber-500" />
+            Demonstration Mode
+          </h3>
+          <p className="text-amber-700 mt-1">
+            This is a preview of the relationship gifts feature using sample data. In the full version, 
+            you'll be able to get AI-powered gift suggestions based on your unique relationship dynamics.
+          </p>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
