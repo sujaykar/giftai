@@ -7,6 +7,9 @@ import { recommendationController } from "./controllers/recommendation-controlle
 import { productController } from "./controllers/product-controller";
 import { hybridRecommendationController } from "./controllers/hybrid-recommendation-controller";
 import { relationshipGiftController } from "./controllers/relationship-gift-controller";
+import { productScraperController } from "./controllers/product-scraper-controller";
+import { isAdmin } from "./middleware/admin-auth";
+import { apiKeyAuth } from "./middleware/api-key-auth";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import passport from "passport";
@@ -127,6 +130,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Relationship-based gift suggestion routes
   app.post("/api/recipients/:recipientId/relationship-gifts", isAuthenticated, relationshipGiftController.getRelationshipGiftSuggestions);
   app.get("/api/recipients/:recipientId/relationship-analysis", isAuthenticated, relationshipGiftController.analyzeRelationship);
+  
+  // Product scraper routes - admin only
+  app.get("/api/admin/scraper/run", isAdmin, productScraperController.runFullScraping);
+  app.get("/api/admin/scraper/amazon", isAdmin, productScraperController.scrapeAmazonProducts);
+  app.get("/api/admin/scraper/etsy", isAdmin, productScraperController.scrapeEtsyProducts);
+  app.get("/api/admin/scraper/ebay", isAdmin, productScraperController.scrapeEbayProducts);
+  
+  // For scheduled jobs - needs API key auth
+  app.get("/api/jobs/scraper/run", apiKeyAuth, productScraperController.runFullScraping);
 
   // Stats routes
   app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
