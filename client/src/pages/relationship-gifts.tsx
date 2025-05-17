@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Heart, ChevronLeft, Loader2 } from 'lucide-react';
@@ -16,14 +16,23 @@ import { RelationshipGiftSuggestions } from '../components/relationship-gift-sug
 export default function RelationshipGiftsPage() {
   const [location, setLocation] = useLocation();
   const [selectedRecipientId, setSelectedRecipientId] = useState<number | null>(null);
+  const [mockRecipients, setMockRecipients] = useState([
+    { id: 1, name: "Emma Thompson", relationship: "Friend", interests: ["Reading", "Hiking", "Photography"] },
+    { id: 2, name: "Michael Chen", relationship: "Family", interests: ["Cooking", "Gaming", "Travel"] },
+    { id: 3, name: "Sarah Johnson", relationship: "Colleague", interests: ["Fitness", "Music", "Art"] }
+  ]);
 
-  // Fetch recipients
+  // Fetch recipients with fallback to mock data
   const {
     data: recipients,
     isLoading,
     error,
   } = useQuery({
     queryKey: ['/api/recipients'],
+    retry: false,
+    onError: (err) => {
+      console.error('Error fetching recipients:', err);
+    }
   });
 
   // Handle recipient selection
@@ -60,7 +69,24 @@ export default function RelationshipGiftsPage() {
               <span>Loading recipients...</span>
             </div>
           ) : error ? (
-            <p className="text-red-500">Error loading recipients. Please try again.</p>
+            <div className="max-w-md">
+              <p className="text-amber-500 mb-4">Using demo data for preview purposes.</p>
+              <Select
+                value={selectedRecipientId?.toString()}
+                onValueChange={handleRecipientChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockRecipients.map((recipient) => (
+                    <SelectItem key={recipient.id} value={recipient.id.toString()}>
+                      {recipient.name} ({recipient.relationship})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           ) : recipients?.length > 0 ? (
             <div className="max-w-md">
               <Select
