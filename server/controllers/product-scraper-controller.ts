@@ -10,18 +10,18 @@ export const productScraperController = {
    */
   async runFullScraping(req: Request, res: Response) {
     try {
-      const results = await productScraperService.runScheduledScraping();
+      const results = await productScraperService.runFullScraping();
       
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: `Successfully scraped ${results.total} products`,
         data: results
       });
     } catch (error) {
-      console.error(`Error running full scraping: ${error}`);
-      res.status(500).json({
+      console.error('Error running full scraping:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Failed to run product scraping',
+        message: 'Error running product scraping',
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -32,23 +32,20 @@ export const productScraperController = {
    */
   async scrapeAmazonProducts(req: Request, res: Response) {
     try {
-      const { category = 'electronics', limit = 10 } = req.query;
+      const category = req.query.category as string || 'electronics';
       
-      const savedCount = await productScraperService.scrapeAmazonProducts(
-        String(category),
-        Number(limit)
-      );
+      const count = await productScraperService.scrapeAmazonCategory(category);
       
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        message: `Successfully scraped ${savedCount} Amazon products for category: ${category}`,
-        data: { count: savedCount, source: 'Amazon', category }
+        message: `Successfully scraped ${count} Amazon products for category: ${category}`,
+        data: { count, category, source: 'amazon' }
       });
     } catch (error) {
-      console.error(`Error scraping Amazon products: ${error}`);
-      res.status(500).json({
+      console.error('Error scraping Amazon products:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Failed to scrape Amazon products',
+        message: 'Error scraping Amazon products',
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -59,23 +56,20 @@ export const productScraperController = {
    */
   async scrapeEtsyProducts(req: Request, res: Response) {
     try {
-      const { category = 'home-decor', limit = 10 } = req.query;
+      const category = req.query.category as string || 'home-decor';
       
-      const savedCount = await productScraperService.scrapeEtsyProducts(
-        String(category),
-        Number(limit)
-      );
+      const count = await productScraperService.scrapeEtsyCategory(category);
       
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        message: `Successfully scraped ${savedCount} Etsy products for category: ${category}`,
-        data: { count: savedCount, source: 'Etsy', category }
+        message: `Successfully scraped ${count} Etsy products for category: ${category}`,
+        data: { count, category, source: 'etsy' }
       });
     } catch (error) {
-      console.error(`Error scraping Etsy products: ${error}`);
-      res.status(500).json({
+      console.error('Error scraping Etsy products:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Failed to scrape Etsy products',
+        message: 'Error scraping Etsy products',
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -86,23 +80,20 @@ export const productScraperController = {
    */
   async scrapeEbayProducts(req: Request, res: Response) {
     try {
-      const { category = 'collectibles', limit = 10 } = req.query;
+      const category = req.query.category as string || 'electronics';
       
-      const savedCount = await productScraperService.scrapeEbayProducts(
-        String(category),
-        Number(limit)
-      );
+      const count = await productScraperService.scrapeEbayCategory(category);
       
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        message: `Successfully scraped ${savedCount} eBay products for category: ${category}`,
-        data: { count: savedCount, source: 'eBay', category }
+        message: `Successfully scraped ${count} eBay products for category: ${category}`,
+        data: { count, category, source: 'ebay' }
       });
     } catch (error) {
-      console.error(`Error scraping eBay products: ${error}`);
-      res.status(500).json({
+      console.error('Error scraping eBay products:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Failed to scrape eBay products',
+        message: 'Error scraping eBay products',
         error: error instanceof Error ? error.message : String(error)
       });
     }

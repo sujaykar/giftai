@@ -1,127 +1,27 @@
-import axios from 'axios';
 import { storage } from '../storage';
-import type { InsertProduct } from '@shared/schema';
+import { insertProductSchema } from '@shared/schema';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Service for scraping products from popular e-commerce sites
+ * ProductScraperService handles scraping product data from various e-commerce sites
  */
-export const productScraperService = {
-  /**
-   * Scrape products from Amazon
-   * @param category - Product category to scrape
-   * @param limit - Maximum number of products to scrape
-   */
-  async scrapeAmazonProducts(category: string, limit: number = 10): Promise<number> {
-    try {
-      console.log(`Scraping Amazon products for category: ${category}`);
-      
-      // In a real implementation, this would use Amazon Product Advertising API
-      // For MVP, we'll simulate scraping with sample data
-      const products = generateMockProductsForCategory(category, 'Amazon', limit);
-      
-      // Save products to database
-      let savedCount = 0;
-      for (const product of products) {
-        try {
-          await storage.createProduct(product);
-          savedCount++;
-        } catch (error) {
-          console.error(`Error saving Amazon product: ${error}`);
-        }
-      }
-      
-      console.log(`Successfully scraped and saved ${savedCount} Amazon products for category: ${category}`);
-      return savedCount;
-    } catch (error) {
-      console.error(`Error scraping Amazon products: ${error}`);
-      throw error;
-    }
-  },
+export class ProductScraperService {
+  private categories = [
+    'electronics',
+    'home-decor',
+    'clothing',
+    'jewelry',
+    'books',
+    'toys-games',
+    'beauty',
+    'kitchen',
+    'sports-outdoors'
+  ];
   
   /**
-   * Scrape products from Etsy
-   * @param category - Product category to scrape
-   * @param limit - Maximum number of products to scrape
+   * Run a full scraping cycle for all sources and categories
    */
-  async scrapeEtsyProducts(category: string, limit: number = 10): Promise<number> {
-    try {
-      console.log(`Scraping Etsy products for category: ${category}`);
-      
-      // In a real implementation, this would use Etsy API
-      // For MVP, we'll simulate scraping with sample data
-      const products = generateMockProductsForCategory(category, 'Etsy', limit);
-      
-      // Save products to database
-      let savedCount = 0;
-      for (const product of products) {
-        try {
-          await storage.createProduct(product);
-          savedCount++;
-        } catch (error) {
-          console.error(`Error saving Etsy product: ${error}`);
-        }
-      }
-      
-      console.log(`Successfully scraped and saved ${savedCount} Etsy products for category: ${category}`);
-      return savedCount;
-    } catch (error) {
-      console.error(`Error scraping Etsy products: ${error}`);
-      throw error;
-    }
-  },
-  
-  /**
-   * Scrape products from eBay
-   * @param category - Product category to scrape
-   * @param limit - Maximum number of products to scrape
-   */
-  async scrapeEbayProducts(category: string, limit: number = 10): Promise<number> {
-    try {
-      console.log(`Scraping eBay products for category: ${category}`);
-      
-      // In a real implementation, this would use eBay API
-      // For MVP, we'll simulate scraping with sample data
-      const products = generateMockProductsForCategory(category, 'eBay', limit);
-      
-      // Save products to database
-      let savedCount = 0;
-      for (const product of products) {
-        try {
-          await storage.createProduct(product);
-          savedCount++;
-        } catch (error) {
-          console.error(`Error saving eBay product: ${error}`);
-        }
-      }
-      
-      console.log(`Successfully scraped and saved ${savedCount} eBay products for category: ${category}`);
-      return savedCount;
-    } catch (error) {
-      console.error(`Error scraping eBay products: ${error}`);
-      throw error;
-    }
-  },
-  
-  /**
-   * Run scheduled scraping for all configured categories and sources
-   */
-  async runScheduledScraping(): Promise<{
-    total: number;
-    bySource: Record<string, number>;
-  }> {
-    const categories = [
-      'electronics', 
-      'home-decor', 
-      'clothing', 
-      'jewelry', 
-      'books',
-      'toys-games',
-      'beauty',
-      'kitchen',
-      'sports-outdoors'
-    ];
-    
+  async runFullScraping() {
     const results = {
       total: 0,
       bySource: {
@@ -131,156 +31,302 @@ export const productScraperService = {
       }
     };
     
-    // Scrape each category from each source
-    for (const category of categories) {
-      try {
-        // Amazon
-        const amazonCount = await this.scrapeAmazonProducts(category, 5);
-        results.bySource.amazon += amazonCount;
-        results.total += amazonCount;
-        
-        // Etsy
-        const etsyCount = await this.scrapeEtsyProducts(category, 5);
-        results.bySource.etsy += etsyCount;
-        results.total += etsyCount;
-        
-        // eBay
-        const ebayCount = await this.scrapeEbayProducts(category, 5);
-        results.bySource.ebay += ebayCount;
-        results.total += ebayCount;
-      } catch (error) {
-        console.error(`Error scraping category ${category}: ${error}`);
-      }
+    for (const category of this.categories) {
+      // Scrape Amazon products
+      const amazonCount = await this.scrapeAmazonCategory(category);
+      results.bySource.amazon += amazonCount;
+      results.total += amazonCount;
+      
+      // Scrape Etsy products
+      const etsyCount = await this.scrapeEtsyCategory(category);
+      results.bySource.etsy += etsyCount;
+      results.total += etsyCount;
+      
+      // Scrape eBay products
+      const ebayCount = await this.scrapeEbayCategory(category);
+      results.bySource.ebay += ebayCount;
+      results.total += ebayCount;
     }
     
     return results;
   }
-};
-
-/**
- * Generate sample product data for a category
- * This is for the MVP only and will be replaced with actual API calls
- */
-function generateMockProductsForCategory(
-  category: string, 
-  source: string, 
-  count: number
-): InsertProduct[] {
-  const products: InsertProduct[] = [];
   
-  // Map categories to more specific product types
-  const categoryProductsMap: Record<string, string[]> = {
-    'electronics': ['Headphones', 'Bluetooth Speaker', 'Tablet', 'Smartwatch', 'Wireless Earbuds'],
-    'home-decor': ['Wall Art', 'Throw Pillow', 'Candle Set', 'Decorative Vase', 'Photo Frame'],
-    'clothing': ['T-Shirt', 'Sweater', 'Jeans', 'Jacket', 'Dress'],
-    'jewelry': ['Necklace', 'Bracelet', 'Earrings', 'Ring', 'Watch'],
-    'books': ['Fiction Novel', 'Cookbook', 'Biography', 'Self-Help Book', 'Art Book'],
-    'toys-games': ['Board Game', 'Puzzle', 'Action Figure', 'Building Blocks', 'Plush Toy'],
-    'beauty': ['Face Cream', 'Perfume', 'Makeup Set', 'Skincare Kit', 'Hair Products'],
-    'kitchen': ['Coffee Maker', 'Knife Set', 'Cooking Utensils', 'Baking Pan', 'Blender'],
-    'sports-outdoors': ['Yoga Mat', 'Water Bottle', 'Running Shoes', 'Camping Gear', 'Fitness Tracker']
-  };
-  
-  // Price ranges by source (USD)
-  const priceRanges: Record<string, [number, number]> = {
-    'Amazon': [15, 150],
-    'Etsy': [20, 200],
-    'eBay': [10, 120]
-  };
-  
-  const productTypes = categoryProductsMap[category] || 
-    ['Generic Product', 'Special Item', 'Gift Item', 'Unique Product', 'Custom Item'];
-  
-  const [minPrice, maxPrice] = priceRanges[source] || [10, 100];
-  
-  // Generate unique products
-  for (let i = 0; i < count; i++) {
-    const productType = productTypes[Math.floor(Math.random() * productTypes.length)];
-    const brandNames = ['Artisan', 'CraftMaster', 'EliteGoods', 'PrimeDesign', 'QualityWorks'];
-    const brand = brandNames[Math.floor(Math.random() * brandNames.length)];
+  /**
+   * Scrape products from Amazon for a specific category
+   */
+  async scrapeAmazonCategory(category: string) {
+    console.log(`Scraping Amazon products for category: ${category}`);
     
-    // Generate a random price within the range
-    const price = (Math.random() * (maxPrice - minPrice) + minPrice).toFixed(2);
+    // In a real implementation, this would use Amazon API or web scraping
+    // For this MVP, we'll generate simulated product data
+    const products = this.generateMockAmazonProducts(category, 5);
     
-    // Generate a rating between 3.5 and 5.0
-    const rating = (Math.random() * 1.5 + 3.5).toFixed(1);
+    // Save products to database
+    let savedCount = 0;
+    for (const product of products) {
+      await storage.createProduct(product);
+      savedCount++;
+    }
     
-    // Rating count between 10 and 500
-    const ratingCount = Math.floor(Math.random() * 490) + 10;
-    
-    // Create the product object
-    const product: InsertProduct = {
-      uuid: uuidv4(),
-      name: `${brand} ${productType} - ${source} Exclusive`,
-      description: `High-quality ${productType.toLowerCase()} perfect for gifts. This ${category} item is handcrafted with premium materials and attention to detail.`,
-      price: price,
-      retailPrice: (parseFloat(price) * 1.2).toFixed(2),
-      salePrice: (parseFloat(price) * 0.9).toFixed(2),
-      currency: 'USD',
-      imageUrl: null, // In a real implementation, this would be a URL
-      purchaseUrl: `https://${source.toLowerCase()}.com/products/${category}/${Math.floor(Math.random() * 10000)}`,
-      source: source,
-      brand: brand,
-      categories: [category],
-      interests: generateInterestsForCategory(category),
-      occasions: generateOccasionsForCategory(category),
-      gender: ['unisex', 'male', 'female'][Math.floor(Math.random() * 3)],
-      ageMin: Math.floor(Math.random() * 80) + 5,
-      ageMax: 85,
-      rating: rating,
-      ratingCount: ratingCount.toString(),
-      isActive: true,
-      availability: 'in_stock',
-      lastScrapedAt: new Date(),
-      metadata: {
-        color: ['red', 'blue', 'green', 'black', 'white'][Math.floor(Math.random() * 5)],
-        size: ['small', 'medium', 'large'][Math.floor(Math.random() * 3)],
-        material: ['cotton', 'polyester', 'metal', 'wood', 'plastic'][Math.floor(Math.random() * 5)]
-      }
-    };
-    
-    products.push(product);
+    console.log(`Successfully scraped and saved ${savedCount} Amazon products for category: ${category}`);
+    return savedCount;
   }
   
-  return products;
+  /**
+   * Scrape products from Etsy for a specific category
+   */
+  async scrapeEtsyCategory(category: string) {
+    console.log(`Scraping Etsy products for category: ${category}`);
+    
+    // In a real implementation, this would use Etsy API or web scraping
+    // For this MVP, we'll generate simulated product data
+    const products = this.generateMockEtsyProducts(category, 5);
+    
+    // Save products to database
+    let savedCount = 0;
+    for (const product of products) {
+      await storage.createProduct(product);
+      savedCount++;
+    }
+    
+    console.log(`Successfully scraped and saved ${savedCount} Etsy products for category: ${category}`);
+    return savedCount;
+  }
+  
+  /**
+   * Scrape products from eBay for a specific category
+   */
+  async scrapeEbayCategory(category: string) {
+    console.log(`Scraping eBay products for category: ${category}`);
+    
+    // In a real implementation, this would use eBay API or web scraping
+    // For this MVP, we'll generate simulated product data
+    const products = this.generateMockEbayProducts(category, 5);
+    
+    // Save products to database
+    let savedCount = 0;
+    for (const product of products) {
+      await storage.createProduct(product);
+      savedCount++;
+    }
+    
+    console.log(`Successfully scraped and saved ${savedCount} eBay products for category: ${category}`);
+    return savedCount;
+  }
+  
+  /**
+   * Generate mock Amazon products for demonstration purposes
+   * In a real implementation, this would be replaced with actual Amazon API calls
+   */
+  private generateMockAmazonProducts(category: string, count: number) {
+    const products = [];
+    const priceRanges = {
+      'electronics': { min: 50, max: 500 },
+      'home-decor': { min: 20, max: 200 },
+      'clothing': { min: 15, max: 100 },
+      'jewelry': { min: 30, max: 300 },
+      'books': { min: 10, max: 30 },
+      'toys-games': { min: 15, max: 80 },
+      'beauty': { min: 10, max: 50 },
+      'kitchen': { min: 25, max: 150 },
+      'sports-outdoors': { min: 20, max: 200 }
+    };
+    
+    for (let i = 0; i < count; i++) {
+      const priceRange = priceRanges[category as keyof typeof priceRanges] || { min: 10, max: 100 };
+      const price = (Math.random() * (priceRange.max - priceRange.min) + priceRange.min).toFixed(2);
+      
+      const product = {
+        name: `Amazon ${this.getProductNameByCategory(category)} #${i+1}`,
+        description: `This is a high-quality ${category.replace('-', ' ')} product from Amazon.`,
+        price: `$${price}`,
+        imageUrl: `https://example.com/images/amazon/${category}/${i+1}.jpg`,
+        purchaseUrl: `https://amazon.com/dp/B0${i}XX${i}YY`,
+        sourceUrl: `https://amazon.com/dp/B0${i}XX${i}YY`,
+        source: 'amazon',
+        category: category,
+        brand: this.getRandomBrand(category),
+        tags: this.getTagsByCategory(category),
+        rating: (3 + Math.random() * 2).toFixed(1),
+        numReviews: Math.floor(Math.random() * 500) + 10,
+        availability: 'In Stock',
+        lastScrapedAt: new Date(),
+        isSponsored: false,
+        isPromoted: false,
+        isRecommended: true,
+        isPrime: true,
+        isActive: true
+      };
+      
+      products.push(product);
+    }
+    
+    return products;
+  }
+  
+  /**
+   * Generate mock Etsy products for demonstration purposes
+   * In a real implementation, this would be replaced with actual Etsy API calls
+   */
+  private generateMockEtsyProducts(category: string, count: number) {
+    const products = [];
+    const priceRanges = {
+      'electronics': { min: 40, max: 400 },
+      'home-decor': { min: 25, max: 250 },
+      'clothing': { min: 20, max: 120 },
+      'jewelry': { min: 35, max: 350 },
+      'books': { min: 15, max: 40 },
+      'toys-games': { min: 20, max: 100 },
+      'beauty': { min: 15, max: 60 },
+      'kitchen': { min: 30, max: 180 },
+      'sports-outdoors': { min: 25, max: 150 }
+    };
+    
+    for (let i = 0; i < count; i++) {
+      const priceRange = priceRanges[category as keyof typeof priceRanges] || { min: 15, max: 150 };
+      const price = (Math.random() * (priceRange.max - priceRange.min) + priceRange.min).toFixed(2);
+      
+      const product = {
+        name: `Etsy Handmade ${this.getProductNameByCategory(category)} #${i+1}`,
+        description: `This is a handcrafted ${category.replace('-', ' ')} product from an Etsy artisan.`,
+        price: `$${price}`,
+        imageUrl: `https://example.com/images/etsy/${category}/${i+1}.jpg`,
+        purchaseUrl: `https://etsy.com/listing/${9000000 + i}`,
+        sourceUrl: `https://etsy.com/listing/${9000000 + i}`,
+        source: 'etsy',
+        category: category,
+        brand: 'Handmade',
+        tags: [...this.getTagsByCategory(category), 'handmade', 'artisan', 'custom'],
+        rating: (4 + Math.random() * 1).toFixed(1),
+        numReviews: Math.floor(Math.random() * 200) + 5,
+        availability: 'Made to Order',
+        lastScrapedAt: new Date(),
+        isSponsored: false,
+        isPromoted: Math.random() > 0.7,
+        isRecommended: Math.random() > 0.5,
+        isPrime: false,
+        isActive: true
+      };
+      
+      products.push(product);
+    }
+    
+    return products;
+  }
+  
+  /**
+   * Generate mock eBay products for demonstration purposes
+   * In a real implementation, this would be replaced with actual eBay API calls
+   */
+  private generateMockEbayProducts(category: string, count: number) {
+    const products = [];
+    const priceRanges = {
+      'electronics': { min: 30, max: 450 },
+      'home-decor': { min: 15, max: 180 },
+      'clothing': { min: 10, max: 90 },
+      'jewelry': { min: 25, max: 250 },
+      'books': { min: 5, max: 25 },
+      'toys-games': { min: 10, max: 70 },
+      'beauty': { min: 8, max: 45 },
+      'kitchen': { min: 20, max: 130 },
+      'sports-outdoors': { min: 15, max: 180 }
+    };
+    
+    for (let i = 0; i < count; i++) {
+      const priceRange = priceRanges[category as keyof typeof priceRanges] || { min: 10, max: 100 };
+      const price = (Math.random() * (priceRange.max - priceRange.min) + priceRange.min).toFixed(2);
+      const isAuction = Math.random() > 0.7;
+      
+      const product = {
+        name: `eBay ${isAuction ? 'Auction' : 'Buy Now'} ${this.getProductNameByCategory(category)} #${i+1}`,
+        description: `This is a ${isAuction ? 'auctioned' : 'fixed price'} ${category.replace('-', ' ')} product from eBay.`,
+        price: `$${price}`,
+        imageUrl: `https://example.com/images/ebay/${category}/${i+1}.jpg`,
+        purchaseUrl: `https://ebay.com/itm/${8000000 + i}`,
+        sourceUrl: `https://ebay.com/itm/${8000000 + i}`,
+        source: 'ebay',
+        category: category,
+        brand: this.getRandomBrand(category),
+        tags: [...this.getTagsByCategory(category), isAuction ? 'auction' : 'buy-it-now'],
+        rating: (3.5 + Math.random() * 1.5).toFixed(1),
+        numReviews: Math.floor(Math.random() * 300) + 2,
+        availability: isAuction ? 'Auction' : 'Available',
+        lastScrapedAt: new Date(),
+        isSponsored: Math.random() > 0.8,
+        isPromoted: Math.random() > 0.7,
+        isRecommended: Math.random() > 0.6,
+        isPrime: false,
+        isActive: true
+      };
+      
+      products.push(product);
+    }
+    
+    return products;
+  }
+  
+  /**
+   * Get a product name based on category
+   */
+  private getProductNameByCategory(category: string): string {
+    const categoryProducts = {
+      'electronics': ['Smart Watch', 'Bluetooth Speaker', 'Wireless Earbuds', 'Tablet', 'Power Bank'],
+      'home-decor': ['Wall Art', 'Throw Pillow', 'Table Lamp', 'Vase', 'Wall Clock'],
+      'clothing': ['T-Shirt', 'Hoodie', 'Jeans', 'Dress', 'Jacket'],
+      'jewelry': ['Necklace', 'Bracelet', 'Earrings', 'Ring', 'Watch'],
+      'books': ['Novel', 'Cookbook', 'Biography', 'Self-Help Book', 'Children\'s Book'],
+      'toys-games': ['Board Game', 'Action Figure', 'Puzzle', 'Building Set', 'Plush Toy'],
+      'beauty': ['Face Cream', 'Perfume', 'Makeup Set', 'Hair Product', 'Skin Care Kit'],
+      'kitchen': ['Blender', 'Cookware Set', 'Knife Set', 'Coffee Maker', 'Baking Tools'],
+      'sports-outdoors': ['Yoga Mat', 'Camping Tent', 'Water Bottle', 'Hiking Backpack', 'Fitness Tracker']
+    };
+    
+    const products = categoryProducts[category as keyof typeof categoryProducts] || ['Item'];
+    return products[Math.floor(Math.random() * products.length)];
+  }
+  
+  /**
+   * Get random tags based on category
+   */
+  private getTagsByCategory(category: string): string[] {
+    const categoryTags = {
+      'electronics': ['tech', 'gadget', 'wireless', 'smart', 'portable'],
+      'home-decor': ['home', 'decor', 'interior', 'design', 'cozy'],
+      'clothing': ['fashion', 'apparel', 'style', 'trendy', 'comfortable'],
+      'jewelry': ['accessory', 'luxury', 'gift', 'elegant', 'stylish'],
+      'books': ['reading', 'education', 'entertainment', 'literature', 'knowledge'],
+      'toys-games': ['fun', 'kids', 'entertainment', 'educational', 'creative'],
+      'beauty': ['skincare', 'makeup', 'self-care', 'luxury', 'organic'],
+      'kitchen': ['cooking', 'baking', 'culinary', 'practical', 'quality'],
+      'sports-outdoors': ['fitness', 'outdoor', 'adventure', 'exercise', 'health']
+    };
+    
+    const tags = categoryTags[category as keyof typeof categoryTags] || ['product'];
+    // Return 2-4 random tags
+    const numTags = 2 + Math.floor(Math.random() * 3);
+    const shuffled = [...tags].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, numTags);
+  }
+  
+  /**
+   * Get a random brand name based on category
+   */
+  private getRandomBrand(category: string): string {
+    const categoryBrands = {
+      'electronics': ['TechPro', 'SoundMaster', 'GadgetZone', 'ElectroBrand', 'SmartTech'],
+      'home-decor': ['HomeStyle', 'CozyLiving', 'InteriorCraft', 'ModernHome', 'ElegantSpace'],
+      'clothing': ['StyleCo', 'FashionForward', 'TrendWear', 'UrbanThreads', 'ComfortCloth'],
+      'jewelry': ['GemCraft', 'LuxeJewels', 'ShineOn', 'PreciousDesigns', 'ElegantGems'],
+      'books': ['PageTurn Publishing', 'ReadWell Books', 'StoryHouse', 'KnowledgePress', 'WordWise'],
+      'toys-games': ['PlayTime', 'FunFactory', 'KidZone', 'ToyWorld', 'GameMaster'],
+      'beauty': ['GlowUp', 'PureSkin', 'BeautyBliss', 'RadianceCosmetics', 'NaturalBeauty'],
+      'kitchen': ['ChefChoice', 'KitchenPro', 'CookCraft', 'CulinaryMaster', 'BakeBest'],
+      'sports-outdoors': ['ActiveLife', 'OutdoorExplorers', 'FitnessPro', 'AdventureGear', 'SportElite']
+    };
+    
+    const brands = categoryBrands[category as keyof typeof categoryBrands] || ['GenericBrand'];
+    return brands[Math.floor(Math.random() * brands.length)];
+  }
 }
 
-/**
- * Generate relevant interests for a product category
- */
-function generateInterestsForCategory(category: string): string[] {
-  const interestMap: Record<string, string[]> = {
-    'electronics': ['technology', 'gadgets', 'innovation', 'gaming', 'music'],
-    'home-decor': ['interior design', 'art', 'decoration', 'home improvement', 'minimalism'],
-    'clothing': ['fashion', 'style', 'sustainability', 'comfort', 'trends'],
-    'jewelry': ['accessories', 'fashion', 'luxury', 'craftsmanship', 'design'],
-    'books': ['reading', 'literature', 'knowledge', 'learning', 'stories'],
-    'toys-games': ['games', 'fun', 'entertainment', 'collecting', 'strategy'],
-    'beauty': ['skincare', 'makeup', 'self-care', 'wellness', 'organic'],
-    'kitchen': ['cooking', 'baking', 'home chef', 'culinary', 'food'],
-    'sports-outdoors': ['fitness', 'outdoors', 'adventure', 'active lifestyle', 'sports']
-  };
-  
-  return interestMap[category] || ['gifts', 'shopping', 'quality', 'unique items'];
-}
-
-/**
- * Generate relevant occasions for a product category
- */
-function generateOccasionsForCategory(category: string): string[] {
-  const baseOccasions = ['birthday', 'holiday', 'anniversary'];
-  
-  const occasionMap: Record<string, string[]> = {
-    'electronics': [...baseOccasions, 'graduation', 'new job'],
-    'home-decor': [...baseOccasions, 'housewarming', 'wedding'],
-    'clothing': [...baseOccasions, 'graduation', 'back to school'],
-    'jewelry': [...baseOccasions, 'wedding', 'engagement', 'valentine\'s day'],
-    'books': [...baseOccasions, 'graduation', 'retirement'],
-    'toys-games': [...baseOccasions, 'christmas', 'child birthday'],
-    'beauty': [...baseOccasions, 'mother\'s day', 'valentine\'s day'],
-    'kitchen': [...baseOccasions, 'housewarming', 'wedding'],
-    'sports-outdoors': [...baseOccasions, 'father\'s day', 'graduation']
-  };
-  
-  return occasionMap[category] || baseOccasions;
-}
+export const productScraperService = new ProductScraperService();

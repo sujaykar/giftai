@@ -3,8 +3,8 @@
  * It calls the API endpoint to trigger the scraping process
  */
 
-const https = require('https');
-const http = require('http');
+import https from 'https';
+import http from 'http';
 
 // Configuration
 const API_KEY = process.env.API_KEY || 'gift-ai-secret-api-key';
