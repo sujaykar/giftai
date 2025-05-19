@@ -6,11 +6,27 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   uuid: uuid("uuid").notNull().defaultRandom(),
-  email: text("email").notNull().unique(),
+  email: text("email").notNull().unique(), // Will be encrypted
   password: text("password").notNull(),
-  firstName: varchar("first_name", { length: 100 }).notNull(),
-  lastName: varchar("last_name", { length: 100 }).notNull(),
+  firstName: varchar("first_name", { length: 100 }).notNull(), // Will be encrypted
+  lastName: varchar("last_name", { length: 100 }).notNull(), // Will be encrypted
   role: varchar("role", { length: 20 }).default("user").notNull(),
+  phone: text("phone"), // Will be encrypted
+  address: text("address"), // Will be encrypted
+  
+  // Social login providers
+  googleId: varchar("google_id", { length: 100 }),
+  facebookId: varchar("facebook_id", { length: 100 }),
+  appleId: varchar("apple_id", { length: 100 }),
+  
+  // Profile data
+  profileImageUrl: text("profile_image_url"),
+  lastLogin: timestamp("last_login"),
+  isVerified: boolean("is_verified").default(false),
+  verificationToken: text("verification_token"),
+  resetPasswordToken: text("reset_password_token"),
+  resetPasswordExpires: timestamp("reset_password_expires"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
