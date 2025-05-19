@@ -1,24 +1,12 @@
 import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as AppleStrategy } from 'passport-apple';
-import { Strategy as LocalStrategy } from 'passport-local';
-
 import { storage } from '../storage';
-import { encryptData, decryptData, PII_FIELDS } from '../utils/encryption';
-import { comparePassword } from '../utils/auth';
-import { InsertUser } from '@shared/schema';
-
-// Social login configuration
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
-const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '';
-const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET || '';
-const APPLE_CLIENT_ID = process.env.APPLE_CLIENT_ID || '';
-const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID || '';
-const APPLE_KEY_ID = process.env.APPLE_KEY_ID || '';
-const APPLE_PRIVATE_KEY = process.env.APPLE_PRIVATE_KEY || '';
-const CALLBACK_URL = process.env.CALLBACK_URL || 'http://localhost:5000';
+import { comparePassword, hashPassword } from '../utils/auth';
+import { encryptData, decryptData } from '../utils/encryption';
+import { User, InsertUser } from '@shared/schema';
 
 export const configurePassport = () => {
   // Serialize and deserialize user
@@ -29,153 +17,28 @@ export const configurePassport = () => {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      // Decrypt PII fields for use in the application
-      if (user) {
-        const decryptedUser = {
-          ...user,
-          email: user.email ? decryptData(user.email) : null,
-          firstName: user.firstName ? decryptData(user.firstName) : null,
-          lastName: user.lastName ? decryptData(user.lastName) : null,
-        };
-        done(null, decryptedUser);
-      } else {
-        done(null, null);
+      
+      if (!user) {
+        return done(null, false);
       }
+      
+      // Decrypt sensitive fields before sending to client
+      const userForClient = {
+        ...user,
+        email: decryptData(user.email),
+        firstName: decryptData(user.firstName),
+        lastName: decryptData(user.lastName),
+        phone: user.phone ? decryptData(user.phone) : null,
+        address: user.address ? decryptData(user.address) : null,
+      };
+      
+      done(null, userForClient);
     } catch (error) {
-      done(error, null);
+      done(error, false);
     }
   });
 
-  // Google Strategy
-  if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
-    passport.use(
-      new GoogleStrategy(
-        {
-          clientID: GOOGLE_CLIENT_ID,
-          clientSecret: GOOGLE_CLIENT_SECRET,
-          callbackURL: `${CALLBACK_URL}/api/auth/google/callback`,
-          scope: ['profile', 'email'],
-        },
-        async (accessToken, refreshToken, profile, done) => {
-          try {
-            // Check if user exists
-            let user = await storage.getUserByEmail(encryptData(profile.emails?.[0]?.value || ''));
-
-            if (!user) {
-              // Create new user
-              const newUser: InsertUser = {
-                email: encryptData(profile.emails?.[0]?.value || ''),
-                password: '', // No password for social logins
-                firstName: encryptData(profile.name?.givenName || ''),
-                lastName: encryptData(profile.name?.familyName || ''),
-                role: 'user',
-                googleId: profile.id,
-                profileImageUrl: profile.photos?.[0]?.value,
-              };
-
-              user = await storage.createUser(newUser);
-            } else if (!user.googleId) {
-              // Link Google account to existing user
-              await storage.updateUser(user.id, { googleId: profile.id });
-            }
-
-            done(null, user);
-          } catch (error) {
-            done(error, false);
-          }
-        }
-      )
-    );
-  }
-
-  // Facebook Strategy
-  if (FACEBOOK_APP_ID && FACEBOOK_APP_SECRET) {
-    passport.use(
-      new FacebookStrategy(
-        {
-          clientID: FACEBOOK_APP_ID,
-          clientSecret: FACEBOOK_APP_SECRET,
-          callbackURL: `${CALLBACK_URL}/api/auth/facebook/callback`,
-          profileFields: ['id', 'emails', 'name', 'picture.type(large)'],
-        },
-        async (accessToken, refreshToken, profile, done) => {
-          try {
-            // Check if user exists
-            let user = await storage.getUserByEmail(encryptData(profile.emails?.[0]?.value || ''));
-
-            if (!user) {
-              // Create new user
-              const newUser: InsertUser = {
-                email: encryptData(profile.emails?.[0]?.value || ''),
-                password: '', // No password for social logins
-                firstName: encryptData(profile.name?.givenName || ''),
-                lastName: encryptData(profile.name?.familyName || ''),
-                role: 'user',
-                facebookId: profile.id,
-                profileImageUrl: profile.photos?.[0]?.value,
-              };
-
-              user = await storage.createUser(newUser);
-            } else if (!user.facebookId) {
-              // Link Facebook account to existing user
-              await storage.updateUser(user.id, { facebookId: profile.id });
-            }
-
-            done(null, user);
-          } catch (error) {
-            done(error, false);
-          }
-        }
-      )
-    );
-  }
-
-  // Apple Strategy
-  if (APPLE_CLIENT_ID && APPLE_TEAM_ID && APPLE_KEY_ID && APPLE_PRIVATE_KEY) {
-    passport.use(
-      new AppleStrategy(
-        {
-          clientID: APPLE_CLIENT_ID,
-          teamID: APPLE_TEAM_ID,
-          keyID: APPLE_KEY_ID,
-          privateKeyString: APPLE_PRIVATE_KEY,
-          callbackURL: `${CALLBACK_URL}/api/auth/apple/callback`,
-          scope: ['name', 'email'],
-        },
-        async (req, accessToken, refreshToken, idToken, profile, done) => {
-          try {
-            const { email, name } = profile;
-            
-            // Check if user exists
-            let user = await storage.getUserByEmail(encryptData(email || ''));
-
-            if (!user) {
-              // Create new user
-              const newUser: InsertUser = {
-                email: encryptData(email || ''),
-                password: '', // No password for social logins
-                firstName: name?.firstName ? encryptData(name.firstName) : '',
-                lastName: name?.lastName ? encryptData(name.lastName) : '',
-                role: 'user',
-                appleId: idToken.sub,
-              };
-
-              user = await storage.createUser(newUser);
-            } else if (!user.appleId) {
-              // Link Apple account to existing user
-              await storage.updateUser(user.id, { appleId: idToken.sub });
-            }
-
-            done(null, user);
-          } catch (error) {
-            done(error, false);
-          }
-        }
-      )
-    );
-  }
-
-  // Local Strategy (username/password)
+  // Local Strategy (email & password)
   passport.use(
     new LocalStrategy(
       {
@@ -184,18 +47,19 @@ export const configurePassport = () => {
       },
       async (email, password, done) => {
         try {
-          // Find user by email (need to encrypt it for comparison)
-          const user = await storage.getUserByEmail(encryptData(email));
-          
+          // Find user by encrypted email
+          const encryptedEmail = encryptData(email);
+          const user = await storage.getUserByEmail(encryptedEmail);
+
           if (!user) {
-            return done(null, false, { message: 'User not found' });
+            return done(null, false, { message: 'Invalid email or password' });
           }
 
-          // Check password
-          const isPasswordValid = await comparePassword(password, user.password);
+          // Verify password
+          const isMatch = await comparePassword(password, user.password);
           
-          if (!isPasswordValid) {
-            return done(null, false, { message: 'Incorrect password' });
+          if (!isMatch) {
+            return done(null, false, { message: 'Invalid email or password' });
           }
 
           return done(null, user);
@@ -206,5 +70,193 @@ export const configurePassport = () => {
     )
   );
 
-  return passport;
+  // Google OAuth Strategy
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: '/api/auth/google/callback',
+          scope: ['profile', 'email']
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user already exists with this Google ID
+            let user = await storage.getUserByGoogleId(profile.id);
+            
+            if (user) {
+              // Update login time
+              await storage.updateUser(user.id, { lastLogin: new Date() });
+              return done(null, user);
+            }
+            
+            // Check if user exists with the same email
+            const email = profile.emails && profile.emails[0]?.value;
+            
+            if (email) {
+              const encryptedEmail = encryptData(email);
+              const existingUser = await storage.getUserByEmail(encryptedEmail);
+              
+              if (existingUser) {
+                // Link Google ID to existing account
+                user = await storage.updateUser(existingUser.id, { 
+                  googleId: profile.id,
+                  lastLogin: new Date(),
+                  profileImageUrl: profile.photos?.[0]?.value || existingUser.profileImageUrl
+                });
+                return done(null, user);
+              }
+            }
+            
+            // Create new user if not exists
+            const newUser: InsertUser = {
+              email: encryptData(email || `google_${profile.id}@example.com`),
+              firstName: encryptData(profile.name?.givenName || 'Google'),
+              lastName: encryptData(profile.name?.familyName || 'User'),
+              password: await hashPassword(Math.random().toString(36).slice(2)),
+              googleId: profile.id,
+              profileImageUrl: profile.photos?.[0]?.value,
+              isVerified: true,
+              role: 'user'
+            };
+            
+            user = await storage.createUser(newUser);
+            return done(null, user);
+          } catch (error) {
+            return done(error);
+          }
+        }
+      )
+    );
+  }
+
+  // Facebook OAuth Strategy
+  if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
+    passport.use(
+      new FacebookStrategy(
+        {
+          clientID: process.env.FACEBOOK_APP_ID,
+          clientSecret: process.env.FACEBOOK_APP_SECRET,
+          callbackURL: '/api/auth/facebook/callback',
+          profileFields: ['id', 'emails', 'name', 'picture.type(large)']
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user already exists with this Facebook ID
+            let user = await storage.getUserByFacebookId(profile.id);
+            
+            if (user) {
+              // Update login time
+              await storage.updateUser(user.id, { lastLogin: new Date() });
+              return done(null, user);
+            }
+            
+            // Check if user exists with the same email
+            const email = profile.emails && profile.emails[0]?.value;
+            
+            if (email) {
+              const encryptedEmail = encryptData(email);
+              const existingUser = await storage.getUserByEmail(encryptedEmail);
+              
+              if (existingUser) {
+                // Link Facebook ID to existing account
+                user = await storage.updateUser(existingUser.id, { 
+                  facebookId: profile.id,
+                  lastLogin: new Date(),
+                  profileImageUrl: profile.photos?.[0]?.value || existingUser.profileImageUrl
+                });
+                return done(null, user);
+              }
+            }
+            
+            // Create new user if not exists
+            const newUser: InsertUser = {
+              email: encryptData(email || `facebook_${profile.id}@example.com`),
+              firstName: encryptData(profile.name?.givenName || 'Facebook'),
+              lastName: encryptData(profile.name?.familyName || 'User'),
+              password: await hashPassword(Math.random().toString(36).slice(2)),
+              facebookId: profile.id,
+              profileImageUrl: profile.photos?.[0]?.value,
+              isVerified: true,
+              role: 'user'
+            };
+            
+            user = await storage.createUser(newUser);
+            return done(null, user);
+          } catch (error) {
+            return done(error);
+          }
+        }
+      )
+    );
+  }
+
+  // Apple Sign-in Strategy
+  if (process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
+    passport.use(
+      new AppleStrategy(
+        {
+          clientID: process.env.APPLE_CLIENT_ID,
+          teamID: process.env.APPLE_TEAM_ID,
+          keyID: process.env.APPLE_KEY_ID,
+          privateKeyLocation: process.env.APPLE_PRIVATE_KEY,
+          callbackURL: '/api/auth/apple/callback',
+          scope: ['name', 'email']
+        },
+        async (req, accessToken, refreshToken, idToken, profile, done) => {
+          try {
+            // Profile from Apple is minimal, we need to extract from idToken
+            const appleId = profile.id;
+            
+            // Check if user already exists with this Apple ID
+            let user = await storage.getUserByAppleId(appleId);
+            
+            if (user) {
+              // Update login time
+              await storage.updateUser(user.id, { lastLogin: new Date() });
+              return done(null, user);
+            }
+            
+            // Extract email from profile
+            const email = profile.email;
+            
+            if (email) {
+              const encryptedEmail = encryptData(email);
+              const existingUser = await storage.getUserByEmail(encryptedEmail);
+              
+              if (existingUser) {
+                // Link Apple ID to existing account
+                user = await storage.updateUser(existingUser.id, { 
+                  appleId: appleId,
+                  lastLogin: new Date()
+                });
+                return done(null, user);
+              }
+            }
+            
+            // Apple might only provide name on first sign-in
+            const firstName = req.body?.firstName || req.body?.user?.name?.firstName || 'Apple';
+            const lastName = req.body?.lastName || req.body?.user?.name?.lastName || 'User';
+            
+            // Create new user if not exists
+            const newUser: InsertUser = {
+              email: encryptData(email || `apple_${appleId}@example.com`),
+              firstName: encryptData(firstName),
+              lastName: encryptData(lastName),
+              password: await hashPassword(Math.random().toString(36).slice(2)),
+              appleId: appleId,
+              isVerified: true,
+              role: 'user'
+            };
+            
+            user = await storage.createUser(newUser);
+            return done(null, user);
+          } catch (error) {
+            return done(error);
+          }
+        }
+      )
+    );
+  }
 };

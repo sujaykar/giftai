@@ -66,14 +66,14 @@ export function decryptData(encryptedData: string): string {
  * @param obj Object containing PII fields
  * @returns Object with encrypted PII fields
  */
-export function encryptPII<T extends object>(obj: T): T {
+export function encryptPII<T extends Record<string, any>>(obj: T): T {
   if (!obj) return obj;
   
   const result = { ...obj };
   
   PII_FIELDS.forEach(field => {
     if (field in result && typeof result[field] === 'string') {
-      result[field] = encryptData(result[field] as string) as any;
+      result[field] = encryptData(result[field]) as any;
     }
   });
   
@@ -85,14 +85,14 @@ export function encryptPII<T extends object>(obj: T): T {
  * @param obj Object containing encrypted PII fields
  * @returns Object with decrypted PII fields
  */
-export function decryptPII<T extends object>(obj: T): T {
+export function decryptPII<T extends Record<string, any>>(obj: T): T {
   if (!obj) return obj;
   
   const result = { ...obj };
   
   PII_FIELDS.forEach(field => {
     if (field in result && typeof result[field] === 'string') {
-      result[field] = decryptData(result[field] as string) as any;
+      result[field] = decryptData(result[field]) as any;
     }
   });
   
