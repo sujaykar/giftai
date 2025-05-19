@@ -19,9 +19,9 @@ backend:
     build:
       commands:
         - npm ci
-        - npm run build:server
+        - npm run build  # Changed from npm run build:server
   artifacts:
-    baseDirectory: server/dist
+    baseDirectory: dist  # Changed from server/dist to match your build output
     files:
       - '**/*'
   cache:
