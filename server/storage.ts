@@ -15,7 +15,13 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  getUserByFacebookId(facebookId: string): Promise<User | undefined>;
+  getUserByAppleId(appleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
 
   // Recipient methods
   getRecipient(id: number): Promise<Recipient | undefined>;
@@ -111,6 +117,13 @@ export class MemStorage implements IStorage {
   private purchaseHistory: Map<number, PurchaseHistory>;
   private userSimilarity: Map<number, UserSimilarity>;
 
+  // Additional indexes for faster lookups
+  private usersByEmail: Map<string, number>; // email -> userId
+  private usersByResetToken: Map<string, number>; // resetToken -> userId
+  private usersByGoogleId: Map<string, number>; // googleId -> userId
+  private usersByFacebookId: Map<string, number>; // facebookId -> userId
+  private usersByAppleId: Map<string, number>; // appleId -> userId
+
   private currentIds: {
     users: number;
     recipients: number;
@@ -132,6 +145,16 @@ export class MemStorage implements IStorage {
     this.recommendations = new Map();
     this.occasions = new Map();
     this.notificationLogs = new Map();
+    this.productTags = new Map();
+    this.purchaseHistory = new Map();
+    this.userSimilarity = new Map();
+    
+    // Initialize lookup indexes
+    this.usersByEmail = new Map();
+    this.usersByResetToken = new Map();
+    this.usersByGoogleId = new Map();
+    this.usersByFacebookId = new Map();
+    this.usersByAppleId = new Map();
 
     this.currentIds = {
       users: 1,
@@ -141,6 +164,9 @@ export class MemStorage implements IStorage {
       recommendations: 1,
       occasions: 1,
       notificationLogs: 1,
+      productTags: 1,
+      purchaseHistory: 1,
+      userSimilarity: 1
     };
 
     // Initialize with sample product data for MVP
@@ -153,20 +179,193 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
+    const userId = this.usersByEmail.get(email);
+    if (userId) {
+      return this.users.get(userId);
+    }
+    // Fallback to iterating if the index is not yet populated
     return Array.from(this.users.values()).find(user => user.email === email);
+  }
+  
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const userId = this.usersByResetToken.get(token);
+    if (userId) {
+      return this.users.get(userId);
+    }
+    // Fallback to iterating if the index is not yet populated
+    return Array.from(this.users.values()).find(user => user.resetPasswordToken === token);
+  }
+  
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const userId = this.usersByGoogleId.get(googleId);
+    if (userId) {
+      return this.users.get(userId);
+    }
+    // Fallback to iterating if the index is not yet populated
+    return Array.from(this.users.values()).find(user => user.googleId === googleId);
+  }
+  
+  async getUserByFacebookId(facebookId: string): Promise<User | undefined> {
+    const userId = this.usersByFacebookId.get(facebookId);
+    if (userId) {
+      return this.users.get(userId);
+    }
+    // Fallback to iterating if the index is not yet populated
+    return Array.from(this.users.values()).find(user => user.facebookId === facebookId);
+  }
+  
+  async getUserByAppleId(appleId: string): Promise<User | undefined> {
+    const userId = this.usersByAppleId.get(appleId);
+    if (userId) {
+      return this.users.get(userId);
+    }
+    // Fallback to iterating if the index is not yet populated
+    return Array.from(this.users.values()).find(user => user.appleId === appleId);
   }
 
   async createUser(userData: InsertUser): Promise<User> {
     const id = this.currentIds.users++;
+    
+    // Set default values for social fields if not provided
     const user: User = {
       ...userData,
       id,
       uuid: crypto.randomUUID(),
+      role: userData.role || 'user',
+      phone: userData.phone || null,
+      address: userData.address || null,
+      googleId: userData.googleId || null,
+      facebookId: userData.facebookId || null,
+      appleId: userData.appleId || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      isVerified: userData.isVerified || false,
+      verificationToken: userData.verificationToken || null,
+      resetPasswordToken: userData.resetPasswordToken || null,
+      resetPasswordExpires: userData.resetPasswordExpires || null,
+      lastLogin: userData.lastLogin || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    
     this.users.set(id, user);
+    
+    // Update indexes
+    this.usersByEmail.set(user.email, id);
+    
+    if (user.resetPasswordToken) {
+      this.usersByResetToken.set(user.resetPasswordToken, id);
+    }
+    
+    if (user.googleId) {
+      this.usersByGoogleId.set(user.googleId, id);
+    }
+    
+    if (user.facebookId) {
+      this.usersByFacebookId.set(user.facebookId, id);
+    }
+    
+    if (user.appleId) {
+      this.usersByAppleId.set(user.appleId, id);
+    }
+    
     return user;
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    
+    if (!user) {
+      return undefined;
+    }
+    
+    // Update the user object
+    const updatedUser: User = {
+      ...user,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.users.set(id, updatedUser);
+    
+    // Update indexes if needed fields changed
+    if (updates.email && updates.email !== user.email) {
+      this.usersByEmail.delete(user.email);
+      this.usersByEmail.set(updatedUser.email, id);
+    }
+    
+    if (updates.resetPasswordToken !== undefined) {
+      if (user.resetPasswordToken) {
+        this.usersByResetToken.delete(user.resetPasswordToken);
+      }
+      
+      if (updates.resetPasswordToken) {
+        this.usersByResetToken.set(updates.resetPasswordToken, id);
+      }
+    }
+    
+    if (updates.googleId !== undefined) {
+      if (user.googleId) {
+        this.usersByGoogleId.delete(user.googleId);
+      }
+      
+      if (updates.googleId) {
+        this.usersByGoogleId.set(updates.googleId, id);
+      }
+    }
+    
+    if (updates.facebookId !== undefined) {
+      if (user.facebookId) {
+        this.usersByFacebookId.delete(user.facebookId);
+      }
+      
+      if (updates.facebookId) {
+        this.usersByFacebookId.set(updates.facebookId, id);
+      }
+    }
+    
+    if (updates.appleId !== undefined) {
+      if (user.appleId) {
+        this.usersByAppleId.delete(user.appleId);
+      }
+      
+      if (updates.appleId) {
+        this.usersByAppleId.set(updates.appleId, id);
+      }
+    }
+    
+    return updatedUser;
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    const user = this.users.get(id);
+    
+    if (!user) {
+      return false;
+    }
+    
+    // Remove from indexes
+    this.usersByEmail.delete(user.email);
+    
+    if (user.resetPasswordToken) {
+      this.usersByResetToken.delete(user.resetPasswordToken);
+    }
+    
+    if (user.googleId) {
+      this.usersByGoogleId.delete(user.googleId);
+    }
+    
+    if (user.facebookId) {
+      this.usersByFacebookId.delete(user.facebookId);
+    }
+    
+    if (user.appleId) {
+      this.usersByAppleId.delete(user.appleId);
+    }
+    
+    // Remove the user
+    this.users.delete(id);
+    
+    return true;
   }
 
   // Recipient methods

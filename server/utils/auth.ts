@@ -2,9 +2,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User } from '@shared/schema';
 
-// Environment variable for JWT secret - should be set in production
-const JWT_SECRET = process.env.JWT_SECRET || 'gift-ai-default-jwt-secret-change-in-production';
-const JWT_EXPIRY = '7d'; // Token expires in 7 days
+// JWT secret key for token signing
+// In production, this should be a secure environment variable
+const JWT_SECRET = process.env.JWT_SECRET || 'gift-ai-platform-development-jwt-secret';
 
 /**
  * Hash a password using bcrypt
@@ -13,7 +13,7 @@ const JWT_EXPIRY = '7d'; // Token expires in 7 days
  */
 export const hashPassword = async (password: string): Promise<string> => {
   const saltRounds = 10;
-  return bcrypt.hash(password, saltRounds);
+  return await bcrypt.hash(password, saltRounds);
 };
 
 /**
@@ -26,7 +26,7 @@ export const comparePassword = async (
   password: string,
   hashedPassword: string
 ): Promise<boolean> => {
-  return bcrypt.compare(password, hashedPassword);
+  return await bcrypt.compare(password, hashedPassword);
 };
 
 /**
@@ -37,11 +37,14 @@ export const comparePassword = async (
 export const generateToken = (user: User): string => {
   const payload = {
     id: user.id,
+    uuid: user.uuid,
     email: user.email,
-    role: user.role || 'user'
+    role: user.role
   };
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: '7d' // Token valid for 7 days
+  });
 };
 
 /**
