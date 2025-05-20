@@ -81,12 +81,12 @@ function App() {
                         >
                           Get Started
                         </button>
-                        <button 
-                          onClick={() => setLocation("/how-it-works")}
+                        <a 
+                          href="#how-it-works"
                           className="px-6 py-3 rounded-md bg-white text-indigo-600 font-medium border border-indigo-600 hover:bg-indigo-50"
                         >
                           Learn More
-                        </button>
+                        </a>
                       </div>
                     </div>
                     <div className="mt-12 lg:mt-0 lg:ml-auto flex justify-center">
@@ -96,6 +96,65 @@ function App() {
                         className="max-h-96 object-contain"
                       />
                     </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* How It Works Section */}
+              <div id="how-it-works" className="py-16 bg-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold text-gray-900">How GIFT AI Works</h2>
+                    <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+                      Our intelligent platform makes gift-giving easier and more meaningful than ever before.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div className="bg-indigo-50 rounded-xl p-8 text-center">
+                      <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Understanding Relationships</h3>
+                      <p className="text-gray-600">
+                        We analyze relationship dynamics, personal connections, and emotional contexts to understand the meaning behind gift-giving in your specific situation.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-indigo-50 rounded-xl p-8 text-center">
+                      <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Smart Profiling</h3>
+                      <p className="text-gray-600">
+                        Our detailed preference gathering builds comprehensive recipient profiles that capture interests, style, hobbies, and practical needs.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-indigo-50 rounded-xl p-8 text-center">
+                      <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Intelligent Matching</h3>
+                      <p className="text-gray-600">
+                        Our hybrid AI recommendation system combines relationship analysis, collaborative filtering, and content-based filtering to find the perfect gifts.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-16 text-center">
+                    <button 
+                      onClick={() => setLoggedIn(true)}
+                      className="px-6 py-3 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-700"
+                    >
+                      Get Started Now
+                    </button>
                   </div>
                 </div>
               </div>
