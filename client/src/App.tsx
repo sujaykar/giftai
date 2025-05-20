@@ -59,6 +59,9 @@ function App() {
     mood: "" // Added mood filter
   });
   
+  // Track whether filters have been applied
+  const [filtersApplied, setFiltersApplied] = useState(false);
+  
 
 
   
@@ -2101,17 +2104,23 @@ function App() {
               
               <div className="mt-6 flex justify-between border-t border-gray-200 pt-4">
                 <button 
-                  onClick={() => setFilterOptions({
-                    priceRange: [0, 500],
-                    categories: [],
-                    occasions: [],
-                    mood: ""
-                  })}
+                  onClick={() => {
+                    setFilterOptions({
+                      priceRange: [0, 500],
+                      categories: [],
+                      occasions: [],
+                      mood: ""
+                    });
+                    setFiltersApplied(false);
+                  }}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
                   Reset Filters
                 </button>
-                <button className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600">
+                <button 
+                  onClick={() => setFiltersApplied(true)}
+                  className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600"
+                >
                   Apply Filters
                 </button>
               </div>
@@ -2121,6 +2130,7 @@ function App() {
             
             {/* Recommendation Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Filter recommendations based on applied filters */}
               {[
                 { id: 1, title: "Kindle Paperwhite", price: 139.99, image: "https://m.media-amazon.com/images/I/618T0VprZbL._AC_SL1500_.jpg", recipient: "Emma Thompson", category: "Technology", occasion: "Birthday", rating: 4.8, reviews: 156, description: "The thinnest, lightest Kindle Paperwhite yet—with a flush-front design and 300 ppi glare-free display that reads like real paper even in bright sunlight." },
                 { id: 2, title: "Cooking Masterclass Subscription", price: 79.99, image: "https://gordonramsay.com/assets/Uploads/_resampled/CroppedFocusedImage1920108050-50-GRC-Pasta.jpg", recipient: "Michael Chen", category: "Experiences", occasion: "Anniversary", rating: 4.9, reviews: 98, description: "Learn cooking techniques from the world's best chefs with high-quality video lessons and detailed workbooks." },
