@@ -191,6 +191,35 @@ function App() {
     }));
   };
   
+  // Validate password strength
+  const validatePassword = (password: string): { isValid: boolean; message: string } => {
+    // Password requirements
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+    
+    if (password.length < minLength) {
+      return { isValid: false, message: `Password must be at least ${minLength} characters long` };
+    }
+    
+    let missingRequirements = [];
+    if (!hasUpperCase) missingRequirements.push("an uppercase letter");
+    if (!hasLowerCase) missingRequirements.push("a lowercase letter");
+    if (!hasNumbers) missingRequirements.push("a number");
+    if (!hasSpecialChars) missingRequirements.push("a special character");
+    
+    if (missingRequirements.length > 0) {
+      return { 
+        isValid: false, 
+        message: `Password must include ${missingRequirements.join(", ")}`
+      };
+    }
+    
+    return { isValid: true, message: "Password is strong" };
+  };
+  
   // Handle registration submission
   const handleRegister = async () => {
     // Validate form data
@@ -200,6 +229,27 @@ function App() {
         !registrationData.phone ||
         !registrationData.password) {
       alert("All fields are required");
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registrationData.email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+    
+    // Validate phone format (simple check)
+    const phoneRegex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    if (!phoneRegex.test(registrationData.phone)) {
+      alert("Please enter a valid phone number (e.g., 123-456-7890)");
+      return;
+    }
+    
+    // Validate password strength
+    const passwordValidation = validatePassword(registrationData.password);
+    if (!passwordValidation.isValid) {
+      alert(passwordValidation.message);
       return;
     }
     

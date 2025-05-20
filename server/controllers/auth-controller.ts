@@ -4,6 +4,7 @@ import { storage } from '../storage';
 import { hashPassword, generateToken } from '../utils/auth';
 import { encryptData, decryptData, PII_FIELDS } from '../utils/encryption';
 import { InsertUser } from '@shared/schema';
+import { verificationService } from '../services/verification-service';
 
 export const authController = {
   /**
