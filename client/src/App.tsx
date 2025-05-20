@@ -479,51 +479,6 @@ function App() {
           <Route path="/">
             {/* This is where we'll nest the original dashboard content */}
             <div>
-              <header className="bg-white border-b border-gray-200">
-                <div className="container mx-auto flex items-center justify-between p-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-6 w-6 text-pink-500" />
-                    <span className="text-2xl font-bold text-pink-500">GIFT AI</span>
-                  </div>
-                  
-                  <nav className="hidden md:block">
-                    <ul className="flex gap-6">
-                      <li>
-                        <button 
-                          onClick={() => setActiveTab("dashboard")} 
-                          className={`px-1 py-2 font-medium ${activeTab === "dashboard" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}
-                        >
-                          Dashboard
-                        </button>
-                      </li>
-                      <li>
-                        <button 
-                          onClick={() => setActiveTab("recipients")} 
-                          className={`px-1 py-2 font-medium ${activeTab === "recipients" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}
-                        >
-                          Recipients
-                        </button>
-                      </li>
-                      <li>
-                        <button 
-                          onClick={() => setActiveTab("recommendations")} 
-                          className={`px-1 py-2 font-medium ${activeTab === "recommendations" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}
-                        >
-                          Recommendations
-                        </button>
-                      </li>
-
-                    </ul>
-                  </nav>
-                  
-                  <button 
-                    onClick={handleLogout}
-                    className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </header>
               
               {/* Main content based on active tab */}
               <div className="container mx-auto p-6">
