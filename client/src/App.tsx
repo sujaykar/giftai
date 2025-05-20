@@ -670,7 +670,9 @@ function App() {
                 >
                   Start Finding Perfect Gifts
                 </button>
-                <button className="rounded-md bg-white px-8 py-3 text-base font-medium text-pink-600 shadow-md hover:bg-gray-50">
+                <button 
+                  onClick={() => setLocation("/how-it-works")}
+                  className="rounded-md bg-white px-8 py-3 text-base font-medium text-pink-600 shadow-md hover:bg-gray-50">
                   How It Works
                 </button>
               </div>
