@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Sparkles, Heart, Gift, Share2 } from "lucide-react";
 import { Route, Switch, useLocation } from "wouter";
 import { Navbar } from "./components/Navbar";
+import HowItWorks from "./pages/how-it-works";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -882,6 +883,27 @@ function App() {
       {/* Route setup */}
       {loggedIn && (
         <Switch>
+          <Route path="/how-it-works">
+            <HowItWorks />
+          </Route>
+          
+          <Route path="/relationship-gifts">
+            <div className="min-h-screen bg-white">
+              <Navbar 
+                activeTab={activeTab}
+                showBudgetTracker={showBudgetTracker}
+                location={location}
+                setActiveTab={setActiveTab}
+                setShowBudgetTracker={setShowBudgetTracker}
+                setLocation={setLocation}
+                handleLogout={() => setLoggedIn(false)}
+              />
+              <div className="container mx-auto p-6">
+                <h1 className="mb-8 text-3xl font-bold">Relationship-Based Gift Ideas</h1>
+                {/* Rest of relationship gifts component here */}
+              </div>
+            </div>
+          </Route>
 
           <Route path="/">
             {/* This is where we'll nest the original dashboard content */}
