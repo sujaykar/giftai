@@ -139,5 +139,61 @@ export const emailService = {
       console.error('Error sending password reset email:', error);
       return false;
     }
+  },
+
+  /**
+   * Send recommendation notification email
+   */
+  async sendRecommendationEmail(
+    userId: number,
+    recipient: any,
+    recommendationCount: number
+  ): Promise<boolean> {
+    try {
+      // Get user's email
+      const { storage } = require('../storage');
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // Decrypt user email
+      const { decryptData } = require('../utils/encryption');
+      const userEmail = decryptData(user.email);
+      const recipientName = decryptData(recipient.name);
+      
+      const msg = {
+        to: userEmail,
+        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        subject: `New Gift Recommendations for ${recipientName}`,
+        text: `We've found ${recommendationCount} new gift ideas for ${recipientName}!`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #f06292; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">GIFT AI</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
+              <h2>New Gift Recommendations!</h2>
+              <p>We've found ${recommendationCount} new gift ideas for ${recipientName}!</p>
+              <p>Our AI-powered recommendation engine has analyzed ${recipientName}'s preferences and found some great gift suggestions.</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://giftai.com/recommendations" style="background-color: #f06292; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">View Recommendations</a>
+              </div>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #757575;">
+              <p>&copy; ${new Date().getFullYear()} GIFT AI. All rights reserved.</p>
+            </div>
+          </div>
+        `
+      };
+
+      await sgMail.send(msg);
+      console.log(`Recommendation email sent for recipient ${recipientName}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending recommendation email:', error);
+      return false;
+    }
   }
 };

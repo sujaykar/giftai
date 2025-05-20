@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { storage } from "../storage";
 import { insertRecommendationSchema } from "@shared/schema";
 import { generateRecommendations } from "../services/recommendation-service";
-import { sendRecommendationEmail } from "../services/email-service";
+import { emailService } from "../services/email-service";
 import { generateRelationshipBasedRecommendations, analyzeGiftForRelationship } from "../services/openai-service";
 import crypto from 'crypto';
 
@@ -222,7 +222,7 @@ export const recommendationController = {
         
         // Send notification email
         try {
-          await sendRecommendationEmail(userId, recipient, savedRecommendations.length);
+          await emailService.sendRecommendationEmail(userId, recipient, savedRecommendations.length);
         } catch (error) {
           const emailError = error as Error;
           console.error("Failed to send recommendation email:", emailError);
