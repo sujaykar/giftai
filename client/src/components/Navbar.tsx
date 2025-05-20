@@ -75,14 +75,6 @@ export function Navbar({
                 Relationship Gifts
               </button>
             </li>
-            <li>
-              <button 
-                onClick={() => setLocation("/how-it-works")} 
-                className={`px-1 py-2 font-medium ${location === "/how-it-works" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}
-              >
-                How It Works
-              </button>
-            </li>
           </ul>
         </nav>
         

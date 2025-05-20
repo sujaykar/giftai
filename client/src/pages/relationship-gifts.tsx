@@ -1,143 +1,146 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { RecommendationFilters } from "../components/RecommendationFilters";
-import { Gift } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import { Heart, ChevronLeft, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RelationshipGiftSuggestions } from '../components/relationship-gift-suggestions';
 
-export default function RelationshipGifts() {
-  // Data for recommendations
-  const [recommendationData] = useState([
-    { id: 1, title: "Kindle Paperwhite", price: 139.99, image: "https://m.media-amazon.com/images/I/618T0VprZbL._AC_SL1500_.jpg", recipient: "Emma Thompson", category: "Technology", occasion: "Birthday", rating: 4.8, reviews: 156, description: "The thinnest, lightest Kindle Paperwhite yet—with a flush-front design and 300 ppi glare-free display that reads like real paper even in bright sunlight.", mood: "Practical" },
-    { id: 2, title: "Cooking Masterclass Subscription", price: 79.99, image: "https://gordonramsay.com/assets/Uploads/_resampled/CroppedFocusedImage1920108050-50-GRC-Pasta.jpg", recipient: "Michael Chen", category: "Experiences", occasion: "Anniversary", rating: 4.9, reviews: 98, description: "Learn cooking techniques from the world's best chefs with high-quality video lessons and detailed workbooks.", mood: "Thoughtful" },
-    { id: 3, title: "Wireless Noise-Cancelling Headphones", price: 249.99, image: "https://m.media-amazon.com/images/I/71+X7OmQPYL._AC_SL1500_.jpg", recipient: "Sarah Johnson", category: "Technology", occasion: "Graduation", rating: 4.7, reviews: 203, description: "Industry-leading noise cancellation technology with premium sound quality and comfortable design for all-day listening.", mood: "Premium" },
-    { id: 4, title: "Hiking Backpack", price: 89.99, image: "https://m.media-amazon.com/images/I/91euD0OojiL._AC_SL1500_.jpg", recipient: "Emma Thompson", category: "Outdoors", occasion: "Christmas", rating: 4.6, reviews: 75, description: "Durable, water-resistant backpack with multiple compartments and ergonomic design for comfort on long hikes.", mood: "Adventurous" },
-    { id: 5, title: "Nintendo Switch", price: 299.99, image: "https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg", recipient: "Michael Chen", category: "Gaming", occasion: "Birthday", rating: 4.9, reviews: 325, description: "The versatile gaming system that lets you play your favorite games at home on the TV or on-the-go.", mood: "Fun" },
-    { id: 6, title: "Art Supplies Set", price: 65.99, image: "https://m.media-amazon.com/images/I/81+qScSrDIL._AC_SL1500_.jpg", recipient: "Sarah Johnson", category: "Creativity", occasion: "Christmas", rating: 4.7, reviews: 82, description: "Complete art set with 120 premium pieces including colored pencils, watercolors, pastels, and sketch pads.", mood: "Creative" },
-    { id: 7, title: "Insulated Coffee Mug", price: 29.99, image: "https://m.media-amazon.com/images/I/61eDXs9QFNL._AC_SL1500_.jpg", recipient: "Emma Thompson", category: "Home", occasion: "Valentine's Day", rating: 4.8, reviews: 112, description: "Double-walled stainless steel mug that keeps drinks hot for 12 hours or cold for 24 hours.", mood: "Practical" },
-    { id: 8, title: "Chef's Knife Set", price: 129.99, image: "https://m.media-amazon.com/images/I/61p2wnYlB3L._AC_SL1000_.jpg", recipient: "Michael Chen", category: "Home", occasion: "Christmas", rating: 4.7, reviews: 89, description: "Professional-grade knife set with high-carbon stainless steel blades and ergonomic handles.", mood: "Premium" },
-    { id: 9, title: "Smart Speaker", price: 79.99, image: "https://m.media-amazon.com/images/I/61XLm1sEuDL._AC_SL1000_.jpg", recipient: "Sarah Johnson", category: "Technology", occasion: "Birthday", rating: 4.6, reviews: 145, description: "Premium voice-controlled smart speaker with immersive sound and smart home capabilities.", mood: "Thoughtful" }
+export default function RelationshipGiftsPage() {
+  const [location, setLocation] = useLocation();
+  const [selectedRecipientId, setSelectedRecipientId] = useState<number | null>(null);
+  const [mockRecipients, setMockRecipients] = useState([
+    { id: 1, name: "Emma Thompson", relationship: "Friend", interests: ["Reading", "Hiking", "Photography"] },
+    { id: 2, name: "Michael Chen", relationship: "Family", interests: ["Cooking", "Gaming", "Travel"] },
+    { id: 3, name: "Sarah Johnson", relationship: "Colleague", interests: ["Fitness", "Music", "Art"] }
   ]);
 
-  // State to track filtered recommendations
-  const [filteredRecommendations, setFilteredRecommendations] = useState(recommendationData);
-  
-  // Extract unique categories, occasions, and moods for filters
-  const categories = [...new Set(recommendationData.map(item => item.category))];
-  const occasions = [...new Set(recommendationData.map(item => item.occasion))];
-  const moods = [...new Set(recommendationData.map(item => item.mood))];
+  // Fetch recipients with fallback to mock data
+  const {
+    data: recipients,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['/api/recipients'],
+    retry: false,
+    onError: (err) => {
+      console.error('Error fetching recipients:', err);
+    }
+  });
 
-  // Handle applying filters
-  const handleApplyFilters = (filterOptions: any) => {
-    const filtered = recommendationData.filter(item => {
-      // Filter by price range
-      const priceInRange = 
-        item.price >= filterOptions.priceRange[0] && 
-        item.price <= filterOptions.priceRange[1];
-      
-      // Filter by categories
-      const categoryMatch = 
-        filterOptions.categories.length === 0 || 
-        filterOptions.categories.includes(item.category);
-      
-      // Filter by occasions
-      const occasionMatch = 
-        filterOptions.occasions.length === 0 || 
-        filterOptions.occasions.includes(item.occasion);
-      
-      // Filter by mood
-      const moodMatch = 
-        !filterOptions.mood || 
-        item.mood === filterOptions.mood;
-      
-      return priceInRange && categoryMatch && occasionMatch && moodMatch;
-    });
-    
-    setFilteredRecommendations(filtered);
+  // Handle recipient selection
+  const handleRecipientChange = (recipientId: string) => {
+    setSelectedRecipientId(Number(recipientId));
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Relationship-Based Gift Recommendations</h1>
-        <p className="text-gray-600">Find meaningful gifts tailored to your unique relationships and occasions</p>
+    <div className="container py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Relationship-Based Gift Suggestions</h1>
+          <p className="text-muted-foreground mt-1">
+            Get personalized gift ideas based on your unique relationship dynamics.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => setLocation('/dashboard')}>
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Back to Dashboard
+        </Button>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filters sidebar */}
-        <div className="lg:col-span-1">
-          <RecommendationFilters 
-            onApplyFilters={handleApplyFilters}
-            categories={categories}
-            occasions={occasions}
-            moods={moods}
-          />
+      {error && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <h3 className="text-amber-800 font-medium flex items-center">
+            <Heart className="h-5 w-5 mr-2 text-amber-500" />
+            Demonstration Mode
+          </h3>
+          <p className="text-amber-700 mt-1">
+            This is a preview of the relationship gifts feature using sample data. In the full version, 
+            you'll be able to get AI-powered gift suggestions based on your unique relationship dynamics.
+          </p>
         </div>
-        
-        {/* Recommendations grid */}
-        <div className="lg:col-span-3">
-          {filteredRecommendations.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredRecommendations.map(recommendation => (
-                <div key={recommendation.id} className="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition-shadow hover:shadow-md">
-                  {/* Product Image */}
-                  <div className="aspect-video bg-gray-100 overflow-hidden">
-                    <img
-                      src={recommendation.image}
-                      alt={recommendation.title}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-sm font-medium text-indigo-600">
-                        {recommendation.category}
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-sm text-yellow-500 mr-1">★</span>
-                        <span className="text-sm text-gray-600">{recommendation.rating} ({recommendation.reviews})</span>
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{recommendation.title}</h3>
-                    
-                    <div className="flex items-center mb-2">
-                      <span className="text-sm text-gray-600 mr-2">For: {recommendation.recipient}</span>
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-700">
-                        {recommendation.occasion}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {recommendation.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-900">${recommendation.price.toFixed(2)}</span>
-                      <div className="flex space-x-2">
-                        <Button size="sm">
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Select a Recipient</CardTitle>
+          <CardDescription>
+            Choose a recipient to get personalized gift suggestions based on your relationship.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading recipients...</span>
+            </div>
+          ) : error ? (
+            <div className="max-w-md">
+              <p className="text-amber-500 mb-4">Using demo data for preview purposes.</p>
+              <Select
+                value={selectedRecipientId?.toString()}
+                onValueChange={handleRecipientChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockRecipients.map((recipient) => (
+                    <SelectItem key={recipient.id} value={recipient.id.toString()}>
+                      {recipient.name} ({recipient.relationship})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : recipients?.length > 0 ? (
+            <div className="max-w-md">
+              <Select
+                value={selectedRecipientId?.toString()}
+                onValueChange={handleRecipientChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {recipients.map((recipient: any) => (
+                    <SelectItem key={recipient.id} value={recipient.id.toString()}>
+                      {recipient.name} ({recipient.relationship})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ) : (
-            <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
-              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Gift className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No matching recommendations</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your filters to see more gift ideas.</p>
-              <Button onClick={() => setFilteredRecommendations(recommendationData)}>
-                Reset All Filters
+            <div className="text-center py-8">
+              <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Recipients Found</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                You need to add recipients before you can get relationship-based gift suggestions.
+              </p>
+              <Button
+                onClick={() => setLocation('/recipients/new')}
+                className="mt-4"
+                variant="outline"
+              >
+                Add a Recipient
               </Button>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
+
+      {/* Render the relationship gift suggestions component when a recipient is selected */}
+      {selectedRecipientId && (
+        <RelationshipGiftSuggestions recipientId={selectedRecipientId} />
+      )}
     </div>
   );
 }
