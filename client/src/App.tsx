@@ -31,6 +31,13 @@ function App() {
     budget: { min: 25, max: 100 }
   });
   const [showBudgetTracker, setShowBudgetTracker] = useState(false);
+  const [filters, setFilters] = useState({
+    recipient: "",
+    occasion: "",
+    priceRange: "",
+    category: ""
+  });
+  const [filtersApplied, setFiltersApplied] = useState(false);
   const [budgetData, setBudgetData] = useState({
     totalBudget: 1000,
     spent: 437.97,
@@ -702,204 +709,409 @@ function App() {
                   <h2 className="text-xl font-bold text-gray-900 mb-6">Gift Recommendations</h2>
                   
                   {/* Filters */}
-                  <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                    <div className="flex flex-wrap gap-4">
+                  <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-gray-900">Filter Recommendations</h3>
+                      <button 
+                        onClick={() => {
+                          // Reset all filters to default
+                          setFilters({
+                            recipient: "",
+                            occasion: "",
+                            priceRange: "",
+                            category: ""
+                          });
+                          // Reset applied state
+                          setFiltersApplied(false);
+                        }}
+                        className="text-sm text-indigo-600 hover:text-indigo-800"
+                      >
+                        Reset All Filters
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Recipient</label>
-                        <select className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select 
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          value={filters.recipient}
+                          onChange={(e) => setFilters({...filters, recipient: e.target.value})}
+                        >
                           <option value="">All Recipients</option>
-                          <option>Emma Thompson</option>
-                          <option>Michael Chen</option>
-                          <option>Sarah Johnson</option>
+                          <option value="Emma Thompson">Emma Thompson</option>
+                          <option value="Michael Chen">Michael Chen</option>
+                          <option value="Sarah Johnson">Sarah Johnson</option>
                         </select>
                       </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select 
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          value={filters.category}
+                          onChange={(e) => setFilters({...filters, category: e.target.value})}
+                        >
+                          <option value="">All Categories</option>
+                          <option value="Technology">Technology</option>
+                          <option value="Home">Home</option>
+                          <option value="Outdoors">Outdoors</option>
+                          <option value="Creativity">Creativity</option>
+                          <option value="Experiences">Experiences</option>
+                          <option value="Gaming">Gaming</option>
+                        </select>
+                      </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Occasion</label>
-                        <select className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select 
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          value={filters.occasion}
+                          onChange={(e) => setFilters({...filters, occasion: e.target.value})}
+                        >
                           <option value="">All Occasions</option>
-                          <option>Birthday</option>
-                          <option>Christmas</option>
-                          <option>Valentine's Day</option>
-                          <option>Anniversary</option>
+                          <option value="Birthday">Birthday</option>
+                          <option value="Christmas">Christmas</option>
+                          <option value="Valentine's Day">Valentine's Day</option>
+                          <option value="Anniversary">Anniversary</option>
+                          <option value="Graduation">Graduation</option>
                         </select>
                       </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
-                        <select className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select 
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          value={filters.priceRange}
+                          onChange={(e) => setFilters({...filters, priceRange: e.target.value})}
+                        >
                           <option value="">Any Price</option>
-                          <option>Under $25</option>
-                          <option>$25 - $50</option>
-                          <option>$50 - $100</option>
-                          <option>$100 - $200</option>
-                          <option>Over $200</option>
+                          <option value="under-25">Under $25</option>
+                          <option value="25-50">$25 - $50</option>
+                          <option value="50-100">$50 - $100</option>
+                          <option value="100-200">$100 - $200</option>
+                          <option value="over-200">Over $200</option>
                         </select>
                       </div>
-                      <div className="self-end ml-auto">
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                          Apply Filters
-                        </button>
-                      </div>
                     </div>
+                    
+                    <div className="mt-6 flex justify-end">
+                      <button 
+                        onClick={() => {
+                          // Apply the filters
+                          setFiltersApplied(true);
+                        }}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                    
+                    {filtersApplied && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Applied Filters:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {filters.recipient && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                              Recipient: {filters.recipient}
+                              <button 
+                                onClick={() => setFilters({...filters, recipient: ""})}
+                                className="ml-1.5 text-indigo-600 hover:text-indigo-900"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )}
+                          
+                          {filters.category && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                              Category: {filters.category}
+                              <button 
+                                onClick={() => setFilters({...filters, category: ""})}
+                                className="ml-1.5 text-indigo-600 hover:text-indigo-900"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )}
+                          
+                          {filters.occasion && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                              Occasion: {filters.occasion}
+                              <button 
+                                onClick={() => setFilters({...filters, occasion: ""})}
+                                className="ml-1.5 text-indigo-600 hover:text-indigo-900"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )}
+                          
+                          {filters.priceRange && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                              Price: {
+                                filters.priceRange === "under-25" ? "Under $25" :
+                                filters.priceRange === "25-50" ? "$25 - $50" :
+                                filters.priceRange === "50-100" ? "$50 - $100" :
+                                filters.priceRange === "100-200" ? "$100 - $200" :
+                                filters.priceRange === "over-200" ? "Over $200" : ""
+                              }
+                              <button 
+                                onClick={() => setFilters({...filters, priceRange: ""})}
+                                className="ml-1.5 text-indigo-600 hover:text-indigo-900"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Recommendations Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Kindle */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="h-48 bg-gray-100">
-                        <img 
-                          src="https://m.media-amazon.com/images/I/618T0VprZbL._AC_SL1500_.jpg" 
-                          alt="Kindle Paperwhite" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between mb-2">
-                          <span className="text-xs text-gray-500">For: Emma Thompson</span>
-                          <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Birthday</span>
+                    {/* Recommendation Products */}
+                    {[
+                      // Kindle Paperwhite
+                      { 
+                        id: 1, 
+                        title: "Kindle Paperwhite", 
+                        price: 139.99, 
+                        image: "https://m.media-amazon.com/images/I/618T0VprZbL._AC_SL1500_.jpg", 
+                        recipient: "Emma Thompson", 
+                        category: "Technology", 
+                        occasion: "Birthday", 
+                        rating: 4.8, 
+                        reviews: 156, 
+                        description: "The thinnest, lightest Kindle Paperwhite yet—with a flush-front design and 300 ppi glare-free display that reads like real paper even in bright sunlight."
+                      },
+                      
+                      // Chef's Knife Set
+                      {
+                        id: 2,
+                        title: "Chef's Knife Set",
+                        price: 129.99,
+                        image: "https://m.media-amazon.com/images/I/61p2wnYlB3L._AC_SL1000_.jpg",
+                        recipient: "Michael Chen",
+                        category: "Home",
+                        occasion: "Christmas",
+                        rating: 4.7,
+                        reviews: 89,
+                        description: "Professional-grade knife set with high-carbon stainless steel blades and ergonomic handles for precise cutting."
+                      },
+                      
+                      // Art Supplies Set
+                      {
+                        id: 3,
+                        title: "Art Supplies Set",
+                        price: 65.99,
+                        image: "https://m.media-amazon.com/images/I/81+qScSrDIL._AC_SL1500_.jpg",
+                        recipient: "Sarah Johnson",
+                        category: "Creativity",
+                        occasion: "Christmas",
+                        rating: 4.7,
+                        reviews: 82,
+                        description: "Complete art set with 120 premium pieces including colored pencils, watercolors, pastels, and sketch pads."
+                      },
+                      
+                      // Wireless Headphones
+                      {
+                        id: 4,
+                        title: "Wireless Noise-Cancelling Headphones",
+                        price: 249.99,
+                        image: "https://m.media-amazon.com/images/I/71+X7OmQPYL._AC_SL1500_.jpg",
+                        recipient: "Sarah Johnson",
+                        category: "Technology",
+                        occasion: "Graduation",
+                        rating: 4.7,
+                        reviews: 203,
+                        description: "Industry-leading noise cancellation with premium sound quality and comfortable design for all-day listening."
+                      },
+                      
+                      // Hiking Backpack
+                      {
+                        id: 5,
+                        title: "Hiking Backpack",
+                        price: 89.99,
+                        image: "https://m.media-amazon.com/images/I/91euD0OojiL._AC_SL1500_.jpg",
+                        recipient: "Emma Thompson",
+                        category: "Outdoors",
+                        occasion: "Christmas",
+                        rating: 4.6,
+                        reviews: 75,
+                        description: "Durable, water-resistant backpack with multiple compartments and ergonomic design for comfort on long hikes."
+                      },
+                      
+                      // Nintendo Switch
+                      {
+                        id: 6,
+                        title: "Nintendo Switch",
+                        price: 299.99,
+                        image: "https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg",
+                        recipient: "Michael Chen",
+                        category: "Gaming",
+                        occasion: "Birthday",
+                        rating: 4.9,
+                        reviews: 325,
+                        description: "The versatile gaming system that lets you play your favorite games at home on the TV or on-the-go."
+                      }
+                    ]
+                    // Apply filters to the recommendations
+                    .filter(item => {
+                      if (!filtersApplied) return true;
+                      
+                      // Filter by recipient
+                      const matchesRecipient = !filters.recipient || item.recipient === filters.recipient;
+                      
+                      // Filter by category
+                      const matchesCategory = !filters.category || item.category === filters.category;
+                      
+                      // Filter by occasion
+                      const matchesOccasion = !filters.occasion || item.occasion === filters.occasion;
+                      
+                      // Filter by price range
+                      let matchesPrice = true;
+                      if (filters.priceRange) {
+                        switch (filters.priceRange) {
+                          case 'under-25':
+                            matchesPrice = item.price < 25;
+                            break;
+                          case '25-50':
+                            matchesPrice = item.price >= 25 && item.price <= 50;
+                            break;
+                          case '50-100':
+                            matchesPrice = item.price > 50 && item.price <= 100;
+                            break;
+                          case '100-200':
+                            matchesPrice = item.price > 100 && item.price <= 200;
+                            break;
+                          case 'over-200':
+                            matchesPrice = item.price > 200;
+                            break;
+                        }
+                      }
+                      
+                      return matchesRecipient && matchesCategory && matchesOccasion && matchesPrice;
+                    })
+                    .map(product => (
+                      <div key={product.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="h-48 bg-gray-100">
+                          <img 
+                            src={product.image} 
+                            alt={product.title} 
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Kindle Paperwhite</h3>
-                        <div className="flex items-center mb-2">
-                          <div className="flex text-yellow-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
+                        <div className="p-4">
+                          <div className="flex justify-between mb-2">
+                            <span className="text-xs text-gray-500">For: {product.recipient}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full 
+                              ${product.occasion === 'Birthday' ? 'bg-indigo-100 text-indigo-800' : 
+                                product.occasion === 'Christmas' ? 'bg-green-100 text-green-800' : 
+                                product.occasion === 'Graduation' ? 'bg-blue-100 text-blue-800' : 
+                                product.occasion === 'Anniversary' ? 'bg-pink-100 text-pink-800' : 
+                                product.occasion === 'Valentine\'s Day' ? 'bg-red-100 text-red-800' : 
+                                'bg-gray-100 text-gray-800'}`}>
+                              {product.occasion}
+                            </span>
                           </div>
-                          <span className="text-xs text-gray-500 ml-2">4.8 (156 reviews)</span>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                          The thinnest, lightest Kindle Paperwhite yet—with a flush-front design and 300 ppi glare-free display that reads like real paper even in bright sunlight.
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">$139.99</span>
-                          <div className="flex space-x-2">
-                            <button className="text-xs px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                              Details
-                            </button>
-                            <button className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-                              Purchase
-                            </button>
+                          <h3 className="font-semibold text-gray-900 mb-1">{product.title}</h3>
+                          <div className="flex items-center mb-2">
+                            <div className="flex text-yellow-400">
+                              {[...Array(5)].map((_, index) => (
+                                <svg key={index} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-500 ml-2">{product.rating} ({product.reviews} reviews)</span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                            {product.description}
+                          </p>
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                            <div className="flex space-x-2">
+                              <button className="text-xs px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                                Details
+                              </button>
+                              <button className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                                Purchase
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Chef's Knife Set */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="h-48 bg-gray-100">
-                        <img 
-                          src="https://m.media-amazon.com/images/I/61p2wnYlB3L._AC_SL1000_.jpg" 
-                          alt="Chef's Knife Set" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between mb-2">
-                          <span className="text-xs text-gray-500">For: Michael Chen</span>
-                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">Christmas</span>
-                        </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Chef's Knife Set</h3>
-                        <div className="flex items-center mb-2">
-                          <div className="flex text-yellow-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          </div>
-                          <span className="text-xs text-gray-500 ml-2">4.7 (89 reviews)</span>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                          Professional-grade knife set with high-carbon stainless steel blades and ergonomic handles for precise cutting.
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">$129.99</span>
-                          <div className="flex space-x-2">
-                            <button className="text-xs px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                              Details
-                            </button>
-                            <button className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-                              Purchase
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Art Supplies Set */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="h-48 bg-gray-100">
-                        <img 
-                          src="https://m.media-amazon.com/images/I/81+qScSrDIL._AC_SL1500_.jpg" 
-                          alt="Art Supplies Set" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between mb-2">
-                          <span className="text-xs text-gray-500">For: Sarah Johnson</span>
-                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">Christmas</span>
-                        </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Art Supplies Set</h3>
-                        <div className="flex items-center mb-2">
-                          <div className="flex text-yellow-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          </div>
-                          <span className="text-xs text-gray-500 ml-2">4.7 (82 reviews)</span>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                          Complete art set with 120 premium pieces including colored pencils, watercolors, pastels, and sketch pads.
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">$65.99</span>
-                          <div className="flex space-x-2">
-                            <button className="text-xs px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                              Details
-                            </button>
-                            <button className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-                              Purchase
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
+                  
+                  {/* No Results Message */}
+                  {filtersApplied && 
+                    [
+                      { id: 1, title: "Kindle Paperwhite", price: 139.99, image: "https://m.media-amazon.com/images/I/618T0VprZbL._AC_SL1500_.jpg", recipient: "Emma Thompson", category: "Technology", occasion: "Birthday", rating: 4.8, reviews: 156, description: "The thinnest, lightest Kindle Paperwhite yet—with a flush-front design and 300 ppi glare-free display that reads like real paper even in bright sunlight." },
+                      { id: 2, title: "Chef's Knife Set", price: 129.99, image: "https://m.media-amazon.com/images/I/61p2wnYlB3L._AC_SL1000_.jpg", recipient: "Michael Chen", category: "Home", occasion: "Christmas", rating: 4.7, reviews: 89, description: "Professional-grade knife set with high-carbon stainless steel blades and ergonomic handles for precise cutting." },
+                      { id: 3, title: "Art Supplies Set", price: 65.99, image: "https://m.media-amazon.com/images/I/81+qScSrDIL._AC_SL1500_.jpg", recipient: "Sarah Johnson", category: "Creativity", occasion: "Christmas", rating: 4.7, reviews: 82, description: "Complete art set with 120 premium pieces including colored pencils, watercolors, pastels, and sketch pads." },
+                      { id: 4, title: "Wireless Noise-Cancelling Headphones", price: 249.99, image: "https://m.media-amazon.com/images/I/71+X7OmQPYL._AC_SL1500_.jpg", recipient: "Sarah Johnson", category: "Technology", occasion: "Graduation", rating: 4.7, reviews: 203, description: "Industry-leading noise cancellation with premium sound quality and comfortable design for all-day listening." },
+                      { id: 5, title: "Hiking Backpack", price: 89.99, image: "https://m.media-amazon.com/images/I/91euD0OojiL._AC_SL1500_.jpg", recipient: "Emma Thompson", category: "Outdoors", occasion: "Christmas", rating: 4.6, reviews: 75, description: "Durable, water-resistant backpack with multiple compartments and ergonomic design for comfort on long hikes." },
+                      { id: 6, title: "Nintendo Switch", price: 299.99, image: "https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg", recipient: "Michael Chen", category: "Gaming", occasion: "Birthday", rating: 4.9, reviews: 325, description: "The versatile gaming system that lets you play your favorite games at home on the TV or on-the-go." }
+                    ].filter(item => {
+                      // Filter by recipient
+                      const matchesRecipient = !filters.recipient || item.recipient === filters.recipient;
+                      
+                      // Filter by category
+                      const matchesCategory = !filters.category || item.category === filters.category;
+                      
+                      // Filter by occasion
+                      const matchesOccasion = !filters.occasion || item.occasion === filters.occasion;
+                      
+                      // Filter by price range
+                      let matchesPrice = true;
+                      if (filters.priceRange) {
+                        switch (filters.priceRange) {
+                          case 'under-25':
+                            matchesPrice = item.price < 25;
+                            break;
+                          case '25-50':
+                            matchesPrice = item.price >= 25 && item.price <= 50;
+                            break;
+                          case '50-100':
+                            matchesPrice = item.price > 50 && item.price <= 100;
+                            break;
+                          case '100-200':
+                            matchesPrice = item.price > 100 && item.price <= 200;
+                            break;
+                          case 'over-200':
+                            matchesPrice = item.price > 200;
+                            break;
+                        }
+                      }
+                      
+                      return matchesRecipient && matchesCategory && matchesOccasion && matchesPrice;
+                    }).length === 0 && (
+                      <div className="text-center py-16 bg-white rounded-lg shadow-sm mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No matching recommendations found</h3>
+                        <p className="text-gray-500 mb-6 max-w-md mx-auto">We couldn't find any gifts matching your current filter selections. Try adjusting your filters to see more options.</p>
+                        <button 
+                          onClick={() => {
+                            setFilters({
+                              recipient: "",
+                              occasion: "",
+                              priceRange: "",
+                              category: ""
+                            });
+                            setFiltersApplied(false);
+                          }}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                        >
+                          Reset All Filters
+                        </button>
+                      </div>
+                    )
+                  }
                   
                   {/* Pagination */}
                   <div className="mt-6 flex justify-center">
