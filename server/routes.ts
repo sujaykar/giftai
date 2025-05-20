@@ -90,6 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", passport.authenticate("local"), authController.login);
   app.post("/api/auth/logout", authController.logout);
   app.get("/api/auth/current-user", isAuthenticated, authController.getCurrentUser);
+  app.post("/api/auth/verify", authController.verifyAccount);
   
   // Social Login Routes
   // Google

@@ -24,6 +24,10 @@ export const authController = {
       // Hash password
       const hashedPassword = await hashPassword(password);
       
+      // Generate verification code and token
+      const verificationCode = verificationService.generateVerificationCode();
+      const verificationToken = verificationService.generateVerificationToken();
+      
       // Create new user with encrypted PII
       const newUser: InsertUser = {
         email: encryptData(email),
@@ -31,10 +35,28 @@ export const authController = {
         firstName: encryptData(firstName),
         lastName: encryptData(lastName),
         phone: phone ? encryptData(phone) : null,
+        isVerified: false,
+        verificationCode,
+        verificationToken,
         role: 'user'
       };
       
       const user = await storage.createUser(newUser);
+      
+      // Send verification code via email
+      const emailSent = await verificationService.sendVerificationEmail(
+        decryptData(user.email),
+        verificationCode
+      );
+      
+      // Optionally send verification via SMS as well
+      let smsSent = false;
+      if (phone) {
+        smsSent = await verificationService.sendVerificationSMS(
+          decryptData(user.phone as string),
+          verificationCode
+        );
+      }
       
       // Generate token
       const token = generateToken(user);
@@ -45,14 +67,22 @@ export const authController = {
         email: decryptData(user.email),
         firstName: decryptData(user.firstName),
         lastName: decryptData(user.lastName),
+        phone: user.phone ? decryptData(user.phone) : null,
         token
       };
       
-      delete decryptedUser.password; // Don't send password back
+      // Don't send password or verification info back
+      delete decryptedUser.password;
+      delete decryptedUser.verificationCode;
       
       return res.status(201).json({ 
-        message: 'User registered successfully', 
-        user: decryptedUser 
+        message: 'User registered successfully. Please check your email or phone for a verification code.', 
+        user: decryptedUser,
+        requireVerification: true,
+        verificationSent: {
+          email: emailSent,
+          sms: smsSent
+        }
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -265,6 +295,41 @@ export const authController = {
     } catch (error) {
       console.error('Password reset error:', error);
       return res.status(500).json({ message: 'Error resetting password' });
+    }
+  },
+  
+  /**
+   * Verify account with code
+   */
+  verifyAccount: async (req: Request, res: Response) => {
+    try {
+      const { userId, verificationCode } = req.body;
+      
+      if (!userId || !verificationCode) {
+        return res.status(400).json({ message: 'User ID and verification code are required' });
+      }
+      
+      // Verify the code
+      const isValid = await verificationService.verifyCode(userId, verificationCode);
+      
+      if (!isValid) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+      
+      // Update user to mark as verified and clear verification data
+      await storage.updateUser(userId, {
+        isVerified: true,
+        verificationCode: null,
+        verificationToken: null
+      });
+      
+      return res.json({ 
+        message: 'Account verified successfully',
+        verified: true
+      });
+    } catch (error) {
+      console.error('Account verification error:', error);
+      return res.status(500).json({ message: 'Error verifying account' });
     }
   }
 };

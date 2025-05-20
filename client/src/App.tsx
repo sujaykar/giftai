@@ -182,6 +182,15 @@ function App() {
     confirmPassword: ''
   });
   
+  // State for verification
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationData, setVerificationData] = useState({
+    userId: 0,
+    code: '',
+    isSubmitting: false,
+    error: ''
+  });
+  
   // Handle registration form changes
   const handleRegistrationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -220,6 +229,66 @@ function App() {
     return { isValid: true, message: "Password is strong" };
   };
   
+  // Handle verification code changes
+  const handleVerificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVerificationData(prev => ({
+      ...prev,
+      code: e.target.value
+    }));
+  };
+  
+  // Handle verification submission
+  const handleVerifyAccount = async () => {
+    if (!verificationData.code) {
+      setVerificationData(prev => ({
+        ...prev,
+        error: 'Please enter the verification code'
+      }));
+      return;
+    }
+    
+    setVerificationData(prev => ({
+      ...prev,
+      isSubmitting: true,
+      error: ''
+    }));
+    
+    try {
+      const response = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: verificationData.userId,
+          verificationCode: verificationData.code
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.verified) {
+        // If verification successful, switch to login view
+        setShowVerification(false);
+        setIsRegistering(false);
+        alert("Your account has been verified successfully! Please login.");
+      } else {
+        setVerificationData(prev => ({
+          ...prev,
+          isSubmitting: false,
+          error: data.message || 'Invalid verification code. Please try again.'
+        }));
+      }
+    } catch (error) {
+      console.error("Verification error:", error);
+      setVerificationData(prev => ({
+        ...prev,
+        isSubmitting: false,
+        error: 'An error occurred during verification. Please try again.'
+      }));
+    }
+  };
+
   // Handle registration submission
   const handleRegister = async () => {
     // Validate form data
@@ -277,13 +346,25 @@ function App() {
         body: JSON.stringify(formData)
       });
       
+      const data = await response.json();
+      
       if (response.ok) {
-        // If success, switch to login form
-        setIsRegistering(false);
-        alert("Registration successful! Please login.");
+        if (data.requireVerification && data.user) {
+          // If verification is required, show verification screen
+          setVerificationData(prev => ({
+            ...prev, 
+            userId: data.user.id,
+            error: ''
+          }));
+          setShowVerification(true);
+          alert("Registration successful! Please check your email or phone for the verification code.");
+        } else {
+          // If no verification needed, go to login
+          setIsRegistering(false);
+          alert("Registration successful! Please login.");
+        }
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Registration failed. Please try again.");
+        alert(data.message || "Registration failed. Please try again.");
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -293,7 +374,64 @@ function App() {
 
   if (!loggedIn) {
     if (showLoginForm) {
-      if (isRegistering) {
+      if (showVerification) {
+        // Verification form
+        return (
+          <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+            <div className="w-full max-w-md space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-lg">
+              <div className="space-y-2 text-center">
+                <h1 className="text-4xl font-bold text-pink-500">GIFT AI</h1>
+                <p className="text-gray-600">Verify your account</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="text-center text-sm text-gray-600">
+                  <p>We sent a verification code to your email and phone.</p>
+                  <p>Please enter the code below to verify your account.</p>
+                </div>
+                
+                <div>
+                  <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
+                    Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    id="verificationCode"
+                    value={verificationData.code}
+                    onChange={handleVerificationChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="Enter 6-digit code"
+                    maxLength={6}
+                  />
+                </div>
+                
+                {verificationData.error && (
+                  <div className="rounded-md bg-red-50 p-3">
+                    <div className="text-sm text-red-700">{verificationData.error}</div>
+                  </div>
+                )}
+              </div>
+              
+              <button 
+                onClick={handleVerifyAccount}
+                disabled={verificationData.isSubmitting}
+                className="w-full rounded-md bg-pink-500 px-4 py-3 text-sm font-medium text-white shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-300 disabled:opacity-75"
+              >
+                {verificationData.isSubmitting ? 'Verifying...' : 'Verify Account'}
+              </button>
+              
+              <div className="text-center text-sm">
+                <p className="text-gray-500">
+                  Didn't receive a code? <span className="cursor-pointer text-pink-500 hover:underline">Resend Code</span>
+                </p>
+                <p className="text-gray-500 mt-2">
+                  <span onClick={() => setShowVerification(false)} className="cursor-pointer text-gray-400 hover:underline">Back to registration</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      } else if (isRegistering) {
         // Registration form
         return (
           <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
