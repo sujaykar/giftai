@@ -11,7 +11,7 @@ export const authController = {
    */
   register: async (req: Request, res: Response) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, firstName, lastName, phone } = req.body;
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(encryptData(email));
@@ -29,6 +29,7 @@ export const authController = {
         password: hashedPassword,
         firstName: encryptData(firstName),
         lastName: encryptData(lastName),
+        phone: phone ? encryptData(phone) : null,
         role: 'user'
       };
       

@@ -171,96 +171,273 @@ function App() {
     });
   };
 
+  // State for registration form
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registrationData, setRegistrationData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+  
+  // Handle registration form changes
+  const handleRegistrationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setRegistrationData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Handle registration submission
+  const handleRegister = async () => {
+    // Validate form data
+    if (!registrationData.firstName || 
+        !registrationData.lastName || 
+        !registrationData.email || 
+        !registrationData.phone ||
+        !registrationData.password) {
+      alert("All fields are required");
+      return;
+    }
+    
+    if (registrationData.password !== registrationData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+    
+    // Form data for API request
+    const formData = {
+      firstName: registrationData.firstName,
+      lastName: registrationData.lastName,
+      email: registrationData.email,
+      phone: registrationData.phone,
+      password: registrationData.password
+    };
+    
+    try {
+      // Register user
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (response.ok) {
+        // If success, switch to login form
+        setIsRegistering(false);
+        alert("Registration successful! Please login.");
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("An error occurred during registration. Please try again.");
+    }
+  };
+
   if (!loggedIn) {
     if (showLoginForm) {
-      return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
-          <div className="w-full max-w-md space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-lg">
-            <div className="space-y-2 text-center">
-              <h1 className="text-4xl font-bold text-pink-500">GIFT AI</h1>
-              <p className="text-gray-600">Sign in to your account</p>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                  placeholder="you@example.com"
-                />
+      if (isRegistering) {
+        // Registration form
+        return (
+          <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+            <div className="w-full max-w-md space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-lg">
+              <div className="space-y-2 text-center">
+                <h1 className="text-4xl font-bold text-pink-500">GIFT AI</h1>
+                <p className="text-gray-600">Create your account</p>
               </div>
               
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                  placeholder="••••••••"
-                />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      value={registrationData.firstName}
+                      onChange={handleRegistrationChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                      placeholder="John"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      value={registrationData.lastName}
+                      onChange={handleRegistrationChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={registrationData.email}
+                    onChange={handleRegistrationChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={registrationData.phone}
+                    onChange={handleRegistrationChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="(123) 456-7890"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={registrationData.password}
+                    onChange={handleRegistrationChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="••••••••"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={registrationData.confirmPassword}
+                    onChange={handleRegistrationChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="••••••••"
+                  />
+                </div>
               </div>
-            </div>
-            
-            <button 
-              onClick={handleLogin}
-              className="w-full rounded-md bg-pink-500 px-4 py-3 text-sm font-medium text-white shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
-            >
-              Sign In with Email
-            </button>
-            
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-3">
-              <a
-                href="/api/auth/google"
-                className="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972a6.033 6.033 0 1 1 0-12.064c1.498 0 2.866.549 3.921 1.453l2.814-2.814A9.969 9.969 0 0 0 12.545 2C7.021 2 2.543 6.477 2.543 12s4.478 10 10.002 10c8.396 0 10.249-7.85 9.426-11.748l-9.426-.013z" />
-                </svg>
-              </a>
               
-              <a
-                href="/api/auth/facebook"
-                className="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+              <button 
+                onClick={handleRegister}
+                className="w-full rounded-md bg-pink-500 px-4 py-3 text-sm font-medium text-white shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
               >
-                <svg className="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-              </a>
+                Create Account
+              </button>
               
-              <a
-                href="/api/auth/apple"
-                className="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.066 1.013 1.455 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09z" />
-                  <path d="M15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
-                </svg>
-              </a>
-            </div>
-            
-            <div className="text-center text-sm mt-4">
-              <p className="text-gray-500">
-                New to GIFT AI? <span onClick={() => setShowLoginForm(false)} className="cursor-pointer text-pink-500 hover:underline">Return to home</span>
-              </p>
+              <div className="text-center text-sm">
+                <p className="text-gray-500">
+                  Already have an account? <span onClick={() => setIsRegistering(false)} className="cursor-pointer text-pink-500 hover:underline">Sign in</span>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      );
+        );
+      } else {
+        // Login form
+        return (
+          <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+            <div className="w-full max-w-md space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-lg">
+              <div className="space-y-2 text-center">
+                <h1 className="text-4xl font-bold text-pink-500">GIFT AI</h1>
+                <p className="text-gray-600">Sign in to your account</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+              
+              <button 
+                onClick={handleLogin}
+                className="w-full rounded-md bg-pink-500 px-4 py-3 text-sm font-medium text-white shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              >
+                Sign In with Email
+              </button>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                </div>
+              </div>
+              
+              <div className="flex justify-center">
+                <a
+                  href="/api/auth/google"
+                  className="flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                >
+                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972a6.033 6.033 0 1 1 0-12.064c1.498 0 2.866.549 3.921 1.453l2.814-2.814A9.969 9.969 0 0 0 12.545 2C7.021 2 2.543 6.477 2.543 12s4.478 10 10.002 10c8.396 0 10.249-7.85 9.426-11.748l-9.426-.013z" />
+                  </svg>
+                  Sign in with Google
+                </a>
+              </div>
+              
+              <div className="text-center text-sm mt-4">
+                <p className="text-gray-500">
+                  New to GIFT AI? <span onClick={() => setIsRegistering(true)} className="cursor-pointer text-pink-500 hover:underline">Create an account</span>
+                </p>
+                <p className="text-gray-500 mt-2">
+                  <span onClick={() => setShowLoginForm(false)} className="cursor-pointer text-gray-400 hover:underline">Return to home</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      }
     }
     
     // Landing page
