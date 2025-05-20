@@ -14,7 +14,7 @@ export const emailService = {
     try {
       const msg = {
         to,
-        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
+        from: 'karsujay@karinfinity.com', // Use verified sender in SendGrid
         subject: 'Verify Your GIFT AI Account',
         text: `Your GIFT AI verification code is: ${verificationCode}`,
         html: `
@@ -57,7 +57,7 @@ export const emailService = {
     try {
       const msg = {
         to,
-        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
+        from: 'karsujay@karinfinity.com', // Use verified sender in SendGrid
         subject: 'Welcome to GIFT AI!',
         text: `Welcome to GIFT AI, ${firstName}!`,
         html: `
@@ -108,7 +108,7 @@ export const emailService = {
       
       const msg = {
         to,
-        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
+        from: 'karsujay@karinfinity.com', // Use verified sender in SendGrid
         subject: 'Reset Your GIFT AI Password',
         text: `Click the following link to reset your password: ${resetUrl}`,
         html: `
@@ -167,7 +167,7 @@ export const emailService = {
       
       const msg = {
         to: userEmail,
-        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
+        from: 'karsujay@karinfinity.com', // Use verified sender in SendGrid
         subject: `New Gift Recommendations for ${recipientName}`,
         text: `We've found ${recommendationCount} new gift ideas for ${recipientName}!`,
         html: `
