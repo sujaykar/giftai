@@ -86,6 +86,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", passport.authenticate("local"), authController.login);
   app.post("/api/auth/logout", authController.logout);
   app.get("/api/auth/current-user", isAuthenticated, authController.getCurrentUser);
+  
+  // Social Login Routes
+  // Google
+  app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+  app.get("/api/auth/google/callback", 
+    passport.authenticate("google", { failureRedirect: "/" }),
+    authController.googleCallback
+  );
+  
+  // Facebook
+  app.get("/api/auth/facebook", passport.authenticate("facebook", { scope: ["email"] }));
+  app.get("/api/auth/facebook/callback", 
+    passport.authenticate("facebook", { failureRedirect: "/" }),
+    authController.facebookCallback
+  );
+  
+  // Apple
+  app.get("/api/auth/apple", passport.authenticate("apple"));
+  app.get("/api/auth/apple/callback", 
+    passport.authenticate("apple", { failureRedirect: "/" }),
+    authController.appleCallback
+  );
 
   // Recipient routes
   app.get("/api/recipients", isAuthenticated, recipientController.getRecipients);
