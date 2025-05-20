@@ -880,28 +880,337 @@ function App() {
       {/* Route setup */}
       {loggedIn && (
         <Switch>
-
           <Route path="/">
+            {/* Include Navbar with all tabs */}
+            <Navbar 
+              activeTab={activeTab} 
+              showBudgetTracker={showBudgetTracker}
+              location={location}
+              setActiveTab={setActiveTab}
+              setShowBudgetTracker={setShowBudgetTracker}
+              setLocation={setLocation}
+              handleLogout={handleLogout}
+            />
+            
             {/* This is where we'll nest the original dashboard content */}
             <div>
-              
               {/* Main content based on active tab */}
               <div className="container mx-auto p-6">
-                {activeTab === "dashboard" && (
+                {activeTab === "dashboard" && !showBudgetTracker && (
                   <div className="space-y-6">
-                    {/* Dashboard content */}
+                    <h1 className="text-3xl font-bold text-gray-900">Welcome to Your Dashboard</h1>
+                    <p className="text-gray-600">Here's what you need to know today.</p>
+                    
+                    {/* Dashboard summary cards */}
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <div className="mb-4 inline-flex rounded-full bg-blue-100 p-3 text-blue-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <h3 className="mb-2 text-lg font-semibold text-gray-900">3 Recipients</h3>
+                        <p className="text-sm text-gray-600">You're tracking gift ideas for 3 people</p>
+                      </div>
+                      
+                      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <div className="mb-4 inline-flex rounded-full bg-pink-100 p-3 text-pink-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <h3 className="mb-2 text-lg font-semibold text-gray-900">2 Upcoming Events</h3>
+                        <p className="text-sm text-gray-600">You have 2 occasions in the next 30 days</p>
+                      </div>
+                      
+                      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <div className="mb-4 inline-flex rounded-full bg-green-100 p-3 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                        </div>
+                        <h3 className="mb-2 text-lg font-semibold text-gray-900">8 Gift Ideas</h3>
+                        <p className="text-sm text-gray-600">You have 8 saved gift recommendations</p>
+                      </div>
+                    </div>
+                    
+                    {/* Recent activity and upcoming events */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">Upcoming Occasions</h3>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4">
+                            <div className="flex-shrink-0">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Emma's Birthday</p>
+                              <p className="text-sm text-gray-600">March 15, 2025 (In 2 weeks)</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="flex-shrink-0">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Anniversary with Michael</p>
+                              <p className="text-sm text-gray-600">April 2, 2025 (In 1 month)</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">Recent Activity</h3>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4">
+                            <div className="flex-shrink-0">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">You purchased a Kindle Paperwhite</p>
+                              <p className="text-sm text-gray-600">For Emma's Birthday - 2 days ago</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="flex-shrink-0">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">You saved 3 gift ideas</p>
+                              <p className="text-sm text-gray-600">For Sarah's Christmas - 1 week ago</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === "dashboard" && showBudgetTracker && (
+                  <div className="space-y-6">
+                    <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
+                    <p className="text-gray-600">Track your gift spending and stay within budget.</p>
+                    
+                    {/* Budget Overview */}
+                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                      <h2 className="mb-4 text-xl font-semibold text-gray-900">Overall Budget</h2>
+                      <div className="mb-4 grid gap-4 md:grid-cols-3">
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          <p className="text-sm text-gray-500">Total Budget</p>
+                          <p className="text-2xl font-bold text-gray-900">${budgetData.totalBudget.toFixed(2)}</p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          <p className="text-sm text-gray-500">Spent So Far</p>
+                          <p className="text-2xl font-bold text-pink-500">${budgetData.spent.toFixed(2)}</p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 p-4">
+                          <p className="text-sm text-gray-500">Remaining</p>
+                          <p className="text-2xl font-bold text-green-500">${(budgetData.totalBudget - budgetData.spent).toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="mb-2 h-4 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: `${(budgetData.spent / budgetData.totalBudget) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-sm text-gray-500">{((budgetData.spent / budgetData.totalBudget) * 100).toFixed(1)}% of budget used</p>
+                    </div>
+                    
+                    {/* Budget By Recipient */}
+                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                      <h2 className="mb-4 text-xl font-semibold text-gray-900">Budget By Recipient</h2>
+                      <div className="space-y-4">
+                        {budgetData.budgetsByRecipient.map(recipient => (
+                          <div key={recipient.id} className="rounded-lg border border-gray-100 p-4">
+                            <div className="mb-2 flex items-center justify-between">
+                              <p className="font-medium text-gray-900">{recipient.name}</p>
+                              <p className="text-sm text-gray-500">
+                                <span className="font-medium text-pink-500">${recipient.spent.toFixed(2)}</span> of ${recipient.budget.toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                              <div 
+                                className="h-full rounded-full bg-pink-500" 
+                                style={{ width: `${(recipient.spent / recipient.budget) * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Budget By Occasion */}
+                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                      <h2 className="mb-4 text-xl font-semibold text-gray-900">Budget By Occasion</h2>
+                      <div className="space-y-4">
+                        {budgetData.budgetsByOccasion.map((occasion, index) => (
+                          <div key={index} className="rounded-lg border border-gray-100 p-4">
+                            <div className="mb-2 flex items-center justify-between">
+                              <p className="font-medium text-gray-900">{occasion.occasion}</p>
+                              <p className="text-sm text-gray-500">
+                                <span className="font-medium text-pink-500">${occasion.spent.toFixed(2)}</span> of ${occasion.budget.toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                              <div 
+                                className="h-full rounded-full bg-pink-500" 
+                                style={{ width: `${(occasion.spent / occasion.budget) * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Recent Purchases */}
+                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                      <h2 className="mb-4 text-xl font-semibold text-gray-900">Recent Purchases</h2>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Recipient</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Occasion</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
+                              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Price</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 bg-white">
+                            {budgetData.recentPurchases.map(purchase => (
+                              <tr key={purchase.id}>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{purchase.item}</td>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{purchase.recipient}</td>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{purchase.occasion}</td>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{purchase.date}</td>
+                                <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-pink-500">${purchase.price.toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {activeTab === "recipients" && (
                   <div className="space-y-6">
-                    {/* Recipients content */}
+                    <h1 className="text-3xl font-bold text-gray-900">Your Recipients</h1>
+                    <p className="text-gray-600">Manage your gift recipients and their preferences.</p>
+                    
+                    {/* Add recipient button */}
+                    <div className="flex justify-end">
+                      <button 
+                        onClick={() => {
+                          setSelectedRecipient(null);
+                          setQuizStep(1);
+                          setShowQuiz(true);
+                        }}
+                        className="flex items-center gap-1 rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Add Recipient
+                      </button>
+                    </div>
                   </div>
                 )}
                 
                 {activeTab === "recommendations" && (
                   <div className="space-y-6">
-                    {/* Recommendations content */}
+                    <h1 className="text-3xl font-bold text-gray-900">Your Gift Recommendations</h1>
+                    <p className="text-gray-600">Personalized gift ideas for your loved ones.</p>
+                    
+                    {/* Filters */}
+                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                      <h2 className="mb-4 text-lg font-semibold text-gray-900">Filter Recommendations</h2>
+                      <div className="grid gap-6 md:grid-cols-4">
+                        <div>
+                          <label className="mb-1 block text-sm font-medium text-gray-700">Price Range</label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">${filterOptions.priceRange[0]}</span>
+                            <input 
+                              type="range" 
+                              min="0" 
+                              max="500" 
+                              value={filterOptions.priceRange[0]} 
+                              onChange={(e) => setFilterOptions(prev => ({
+                                ...prev,
+                                priceRange: [parseInt(e.target.value), prev.priceRange[1]]
+                              }))}
+                              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+                            />
+                            <span className="text-sm text-gray-500">${filterOptions.priceRange[1]}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-700">Category</label>
+                          <select 
+                            id="category"
+                            className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-pink-500"
+                          >
+                            <option value="">All Categories</option>
+                            <option value="technology">Technology</option>
+                            <option value="home">Home & Kitchen</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="books">Books</option>
+                            <option value="experiences">Experiences</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="occasion" className="mb-1 block text-sm font-medium text-gray-700">Occasion</label>
+                          <select 
+                            id="occasion"
+                            className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-pink-500"
+                          >
+                            <option value="">All Occasions</option>
+                            <option value="birthday">Birthday</option>
+                            <option value="anniversary">Anniversary</option>
+                            <option value="christmas">Christmas</option>
+                            <option value="valentines">Valentine's Day</option>
+                            <option value="graduation">Graduation</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="mood" className="mb-1 block text-sm font-medium text-gray-700">Gift Mood</label>
+                          <select 
+                            id="mood"
+                            value={filterOptions.mood}
+                            onChange={(e) => setFilterOptions(prev => ({
+                              ...prev,
+                              mood: e.target.value
+                            }))}
+                            className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-pink-500"
+                          >
+                            <option value="">All Moods</option>
+                            {moodOptions.map(mood => (
+                              <option key={mood.id} value={mood.id}>{mood.emoji} {mood.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
