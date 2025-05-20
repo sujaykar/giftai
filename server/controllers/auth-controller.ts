@@ -332,14 +332,14 @@ export const authController = {
       
       // Send welcome email
       try {
-        // Import here to avoid circular dependencies
-        const { emailService } = require('../services/email-service');
+        // Use dynamic import for ESM
+        const emailServiceModule = await import('../services/email-service.js');
         
         // Send welcome email with decrypted first name
         const email = decryptData(user.email);
         const firstName = decryptData(user.firstName);
         
-        await emailService.sendWelcomeEmail(email, firstName);
+        await emailServiceModule.emailService.sendWelcomeEmail(email, firstName);
       } catch (emailError) {
         console.error('Error sending welcome email:', emailError);
         // Continue even if welcome email fails
