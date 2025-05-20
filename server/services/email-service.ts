@@ -162,8 +162,8 @@ export const emailService = {
       // Decrypt user email
       // Use dynamic import for ESM
       const encryptionModule = await import('../utils/encryption.js');
-      const userEmail = decryptData(user.email);
-      const recipientName = decryptData(recipient.name);
+      const userEmail = encryptionModule.decryptData(user.email);
+      const recipientName = encryptionModule.decryptData(recipient.name);
       
       const msg = {
         to: userEmail,
