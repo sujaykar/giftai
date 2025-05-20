@@ -167,7 +167,7 @@ function App() {
               </div>
 
               {/* CTA section */}
-              <div className="bg-indigo-600">
+              <div className="bg-pink-500">
                 <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:justify-between lg:px-8">
                   <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                     Ready to discover perfect gifts?
@@ -177,7 +177,7 @@ function App() {
                   <div className="mt-10 flex items-center gap-x-6 lg:mt-0 lg:flex-shrink-0">
                     <button
                       onClick={() => setLoggedIn(true)}
-                      className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-pink-600 shadow-sm hover:bg-pink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
                       Get Started
                     </button>
