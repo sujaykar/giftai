@@ -14,7 +14,7 @@ export const emailService = {
     try {
       const msg = {
         to,
-        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
         subject: 'Verify Your GIFT AI Account',
         text: `Your GIFT AI verification code is: ${verificationCode}`,
         html: `
@@ -57,7 +57,7 @@ export const emailService = {
     try {
       const msg = {
         to,
-        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
         subject: 'Welcome to GIFT AI!',
         text: `Welcome to GIFT AI, ${firstName}!`,
         html: `
@@ -108,7 +108,7 @@ export const emailService = {
       
       const msg = {
         to,
-        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
         subject: 'Reset Your GIFT AI Password',
         text: `Click the following link to reset your password: ${resetUrl}`,
         html: `
@@ -151,21 +151,23 @@ export const emailService = {
   ): Promise<boolean> {
     try {
       // Get user's email
-      const { storage } = require('../storage');
-      const user = await storage.getUser(userId);
+      // Use dynamic import for ESM
+      const storageModule = await import('../storage.js');
+      const user = await storageModule.storage.getUser(userId);
       
       if (!user) {
         throw new Error('User not found');
       }
       
       // Decrypt user email
-      const { decryptData } = require('../utils/encryption');
+      // Use dynamic import for ESM
+      const encryptionModule = await import('../utils/encryption.js');
       const userEmail = decryptData(user.email);
       const recipientName = decryptData(recipient.name);
       
       const msg = {
         to: userEmail,
-        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        from: 'karsujay@gmail.com', // Use the same email used to create SendGrid account
         subject: `New Gift Recommendations for ${recipientName}`,
         text: `We've found ${recommendationCount} new gift ideas for ${recipientName}!`,
         html: `
