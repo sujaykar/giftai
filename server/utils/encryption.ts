@@ -3,8 +3,9 @@ import { User } from '@shared/schema';
 
 // If not set, generate a default key for development
 // In production, this should be a secure environment variable
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-development-encryption-key-32chars';
-const ENCRYPTION_IV = process.env.ENCRYPTION_IV || crypto.randomBytes(16).toString('hex').slice(0, 16);
+// Note: AES-256-CBC requires a 32-byte key (256 bits)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.scryptSync('default-development-encryption-key', 'salt', 32);
+const ENCRYPTION_IV = process.env.ENCRYPTION_IV ? Buffer.from(process.env.ENCRYPTION_IV, 'hex') : crypto.randomBytes(16);
 
 // Fields that should be encrypted (PII - Personally Identifiable Information)
 export const PII_FIELDS = ['email', 'firstName', 'lastName', 'phone', 'address'];
@@ -18,10 +19,11 @@ export function encryptData(data: string): string {
   if (!data) return data;
   
   try {
+    // Use the ENCRYPTION_KEY directly since it's already a Buffer with proper length
     const cipher = crypto.createCipheriv(
       'aes-256-cbc', 
-      Buffer.from(ENCRYPTION_KEY), 
-      Buffer.from(ENCRYPTION_IV)
+      ENCRYPTION_KEY, 
+      ENCRYPTION_IV
     );
     
     let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -44,10 +46,11 @@ export function decryptData(encryptedData: string): string {
   if (!encryptedData) return encryptedData;
   
   try {
+    // Use the ENCRYPTION_KEY directly since it's already a Buffer with proper length
     const decipher = crypto.createDecipheriv(
       'aes-256-cbc', 
-      Buffer.from(ENCRYPTION_KEY), 
-      Buffer.from(ENCRYPTION_IV)
+      ENCRYPTION_KEY, 
+      ENCRYPTION_IV
     );
     
     let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
