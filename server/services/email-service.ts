@@ -1,80 +1,143 @@
-import { storage } from "../storage";
-import nodemailer from "nodemailer";
+import sgMail from '@sendgrid/mail';
 
-// Create a test SMTP transporter for development
-const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email", // For development
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER || "ethereal.user@ethereal.email", // Will fall back to ethereal for development
-    pass: process.env.EMAIL_PASSWORD || "ethereal_password"
-  }
-});
+// Initialize SendGrid with API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
 
-// For production, use an actual service like SendGrid, Mailgun, etc.
-// const transporter = nodemailer.createTransport({
-//   service: "SendGrid",
-//   auth: {
-//     user: process.env.SENDGRID_USER,
-//     pass: process.env.SENDGRID_API_KEY
-//   }
-// });
+export const emailService = {
+  /**
+   * Send verification email with code
+   */
+  async sendVerificationEmail(
+    to: string, 
+    verificationCode: string
+  ): Promise<boolean> {
+    try {
+      const msg = {
+        to,
+        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        subject: 'Verify Your GIFT AI Account',
+        text: `Your GIFT AI verification code is: ${verificationCode}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #f06292; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">GIFT AI</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
+              <h2>Verify Your Account</h2>
+              <p>Thank you for registering with GIFT AI. Please use the following code to verify your account:</p>
+              <div style="background-color: #f5f5f5; padding: 15px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px;">${verificationCode}</span>
+              </div>
+              <p>This code will expire in 30 minutes.</p>
+              <p>If you did not create an account with GIFT AI, please ignore this email.</p>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #757575;">
+              <p>&copy; ${new Date().getFullYear()} GIFT AI. All rights reserved.</p>
+            </div>
+          </div>
+        `
+      };
 
-/**
- * Send an email notification for new recommendations
- */
-export async function sendRecommendationEmail(
-  userId: number,
-  recipient: any,
-  recommendationsCount: number
-): Promise<void> {
-  // Get user details
-  const user = await storage.getUser(userId);
-  if (!user) {
-    throw new Error("User not found");
+      await sgMail.send(msg);
+      console.log(`Verification email sent to ${to}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Send a welcome email after account verification
+   */
+  async sendWelcomeEmail(
+    to: string, 
+    firstName: string
+  ): Promise<boolean> {
+    try {
+      const msg = {
+        to,
+        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        subject: 'Welcome to GIFT AI!',
+        text: `Welcome to GIFT AI, ${firstName}!`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #f06292; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">GIFT AI</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
+              <h2>Welcome to GIFT AI!</h2>
+              <p>Hi ${firstName},</p>
+              <p>Thank you for joining GIFT AI. We're excited to help you find perfect gifts for your loved ones!</p>
+              <p>With GIFT AI, you can:</p>
+              <ul>
+                <li>Get personalized gift recommendations</li>
+                <li>Save ideas for upcoming occasions</li>
+                <li>Track your gift budget</li>
+                <li>And much more!</li>
+              </ul>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://giftai.com/dashboard" style="background-color: #f06292; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Go to Dashboard</a>
+              </div>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #757575;">
+              <p>&copy; ${new Date().getFullYear()} GIFT AI. All rights reserved.</p>
+            </div>
+          </div>
+        `
+      };
+
+      await sgMail.send(msg);
+      console.log(`Welcome email sent to ${to}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Send a password reset email
+   */
+  async sendPasswordResetEmail(
+    to: string, 
+    resetToken: string
+  ): Promise<boolean> {
+    try {
+      const resetUrl = `https://giftai.com/reset-password?token=${resetToken}`;
+      
+      const msg = {
+        to,
+        from: 'noreply@giftai.com', // Use your verified sender in SendGrid
+        subject: 'Reset Your GIFT AI Password',
+        text: `Click the following link to reset your password: ${resetUrl}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #f06292; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">GIFT AI</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
+              <h2>Reset Your Password</h2>
+              <p>You requested a password reset for your GIFT AI account. Click the button below to reset your password:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" style="background-color: #f06292; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+              </div>
+              <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+              <p>This link will expire in 1 hour.</p>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #757575;">
+              <p>&copy; ${new Date().getFullYear()} GIFT AI. All rights reserved.</p>
+            </div>
+          </div>
+        `
+      };
+
+      await sgMail.send(msg);
+      console.log(`Password reset email sent to ${to}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      return false;
+    }
   }
-  
-  const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-  const appUrl = domain.startsWith('http') ? domain : `https://${domain}`;
-  
-  // Prepare email content
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"GIFT AI" <notifications@gift-ai.com>',
-    to: user.email,
-    subject: `New gift recommendations for ${recipient.name}`,
-    text: `
-    Hello ${user.firstName},
-    
-    We've found ${recommendationsCount} new gift recommendations for ${recipient.name}!
-    
-    Check them out at: ${appUrl}/recipients/${recipient.id}
-    
-    The GIFT AI Team
-    `,
-    html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #E94F6E;">New Gift Recommendations</h2>
-      <p>Hello ${user.firstName},</p>
-      <p>We've found <strong>${recommendationsCount} new gift recommendations</strong> for ${recipient.name}!</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${appUrl}/recipients/${recipient.id}" style="background-color: #E94F6E; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-          View Recommendations
-        </a>
-      </div>
-      <p>Happy gifting!</p>
-      <p>The GIFT AI Team</p>
-    </div>
-    `
-  };
-  
-  // In development mode, log the email rather than sending it
-  if (process.env.NODE_ENV === "development") {
-    console.log("Email would be sent:", mailOptions);
-    return;
-  }
-  
-  // Send the email
-  const info = await transporter.sendMail(mailOptions);
-  console.log("Email sent:", info.messageId);
-}
+};

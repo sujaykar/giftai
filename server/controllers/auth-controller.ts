@@ -316,12 +316,34 @@ export const authController = {
         return res.status(400).json({ message: 'Invalid verification code' });
       }
       
+      // Get user to send welcome email
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+      
       // Update user to mark as verified and clear verification data
       await storage.updateUser(userId, {
         isVerified: true,
         verificationCode: null,
         verificationToken: null
       });
+      
+      // Send welcome email
+      try {
+        // Import here to avoid circular dependencies
+        const { emailService } = require('../services/email-service');
+        
+        // Send welcome email with decrypted first name
+        const email = decryptData(user.email);
+        const firstName = decryptData(user.firstName);
+        
+        await emailService.sendWelcomeEmail(email, firstName);
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // Continue even if welcome email fails
+      }
       
       return res.json({ 
         message: 'Account verified successfully',

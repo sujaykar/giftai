@@ -17,16 +17,18 @@ export const verificationService = {
   },
 
   /**
-   * Send verification code via email
-   * In a production environment, you would integrate with SendGrid, Mailgun, etc.
+   * Send verification code via email using SendGrid
    */
   async sendVerificationEmail(email: string, code: string): Promise<boolean> {
     try {
-      // In a production app, you would send an actual email here
+      // Import here to avoid circular dependencies
+      const { emailService } = require('./email-service');
+      
+      // Log the code for debugging
       console.log(`VERIFICATION CODE for ${email}: ${code}`);
       
-      // Since we don't have email sending configured, we'll simulate success
-      return true;
+      // Send actual email via SendGrid
+      return await emailService.sendVerificationEmail(email, code);
     } catch (error) {
       console.error('Error sending verification email:', error);
       return false;
