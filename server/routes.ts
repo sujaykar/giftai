@@ -15,6 +15,7 @@ import MemoryStore from "memorystore";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { hashPassword, comparePassword } from "./utils/password-utils";
+import { configurePassport } from "./config/passport";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
@@ -35,6 +36,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Configure passport strategies
+  configurePassport();
 
   // Configure Passport
   passport.use(
