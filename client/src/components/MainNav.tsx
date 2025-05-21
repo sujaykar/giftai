@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 interface MainNavProps {
   activeTab: string;
@@ -16,21 +16,15 @@ export function MainNav({ activeTab, onLogout }: MainNavProps) {
         </div>
         
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="/dashboard">
-            <a className={`px-1 py-2 font-medium ${activeTab === "dashboard" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Dashboard
-            </a>
-          </Link>
-          <Link href="/recipients">
-            <a className={`px-1 py-2 font-medium ${activeTab === "recipients" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Recipients
-            </a>
-          </Link>
-          <Link href="/recommendations">
-            <a className={`px-1 py-2 font-medium ${activeTab === "recommendations" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Recommendations
-            </a>
-          </Link>
+          <NavLink href="/dashboard" active={activeTab === "dashboard"}>
+            Dashboard
+          </NavLink>
+          <NavLink href="/recipients" active={activeTab === "recipients"}>
+            Recipients
+          </NavLink>
+          <NavLink href="/recommendations" active={activeTab === "recommendations"}>
+            Recommendations
+          </NavLink>
         </nav>
         
         <button 
@@ -54,26 +48,18 @@ export function FullNav({ activeTab, onLogout }: MainNavProps) {
         </div>
         
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="/dashboard">
-            <a className={`px-1 py-2 font-medium ${activeTab === "dashboard" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Dashboard
-            </a>
-          </Link>
-          <Link href="/budget-tracker">
-            <a className={`px-1 py-2 font-medium ${activeTab === "budget-tracker" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Budget Tracker
-            </a>
-          </Link>
-          <Link href="/recipients">
-            <a className={`px-1 py-2 font-medium ${activeTab === "recipients" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Recipients
-            </a>
-          </Link>
-          <Link href="/recommendations">
-            <a className={`px-1 py-2 font-medium ${activeTab === "recommendations" ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}>
-              Recommendations
-            </a>
-          </Link>
+          <NavLink href="/dashboard" active={activeTab === "dashboard"}>
+            Dashboard
+          </NavLink>
+          <NavLink href="/budget-tracker" active={activeTab === "budget-tracker"}>
+            Budget Tracker
+          </NavLink>
+          <NavLink href="/recipients" active={activeTab === "recipients"}>
+            Recipients
+          </NavLink>
+          <NavLink href="/recommendations" active={activeTab === "recommendations"}>
+            Recommendations
+          </NavLink>
         </nav>
         
         <button 
@@ -84,5 +70,18 @@ export function FullNav({ activeTab, onLogout }: MainNavProps) {
         </button>
       </div>
     </header>
+  );
+}
+
+function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+  const [, navigate] = useLocation();
+  
+  return (
+    <button
+      onClick={() => navigate(href)}
+      className={`px-1 py-2 font-medium ${active ? "text-pink-500" : "text-gray-600 hover:text-pink-500"}`}
+    >
+      {children}
+    </button>
   );
 }
