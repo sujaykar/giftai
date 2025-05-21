@@ -335,13 +335,13 @@ export function RecipientQuiz({ onComplete, onCancel }: RecipientQuizProps) {
           <div className="flex justify-between mt-8">
             <button
               onClick={handleBack}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              className="px-5 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium text-base"
             >
               {step === 1 ? 'Cancel' : 'Back'}
             </button>
             <button
               onClick={handleNext}
-              className="px-4 py-2 bg-pink-500 rounded-md text-white hover:bg-pink-600"
+              className="px-6 py-3 bg-pink-500 rounded-md text-white hover:bg-pink-600 font-medium text-base shadow-md"
               disabled={step === 1 && (!recipientData.name || !recipientData.relationship)}
             >
               {step === totalSteps ? 'Complete' : 'Next'}
