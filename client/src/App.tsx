@@ -42,23 +42,69 @@ function App() {
         <div className="container mx-auto p-6">
           <Switch>
             <Route path="/dashboard">
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold text-gray-900">Welcome to Your Dashboard</h1>
-                <p className="text-gray-600">Here's what you need to know today.</p>
+              <div className="space-y-8">
+                <h1 className="text-3xl font-bold text-gray-900">Welcome, Alex!</h1>
                 
-                {/* Dashboard content */}
+                {/* Dashboard summary cards */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold">Recipients</h3>
-                    <p className="text-2xl font-bold mt-2">3</p>
+                    <h3 className="text-5xl font-bold text-pink-500 mb-2">3</h3>
+                    <p className="text-gray-600">Recipients</p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold">Upcoming Events</h3>
-                    <p className="text-2xl font-bold mt-2">2</p>
+                    <h3 className="text-5xl font-bold text-pink-500 mb-2">12</h3>
+                    <p className="text-gray-600">Recommendations</p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold">Gift Ideas</h3>
-                    <p className="text-2xl font-bold mt-2">8</p>
+                    <h3 className="text-5xl font-bold text-pink-500 mb-2">2</h3>
+                    <p className="text-gray-600">Upcoming Occasions</p>
+                  </div>
+                </div>
+                
+                {/* Recent Recipients */}
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Recipients</h2>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-lg font-semibold">Emma Thompson</h3>
+                      <p className="text-sm text-gray-500">Age: 27</p>
+                      <p className="text-sm text-gray-500">Interests: Reading, Hiking, Photography</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-lg font-semibold">Michael Chen</h3>
+                      <p className="text-sm text-gray-500">Age: 32</p>
+                      <p className="text-sm text-gray-500">Interests: Cooking, Gaming, Travel</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-lg font-semibold">Sarah Johnson</h3>
+                      <p className="text-sm text-gray-500">Age: 35</p>
+                      <p className="text-sm text-gray-500">Interests: Fitness, Music, Art</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Upcoming Occasions */}
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming Occasions</h2>
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-gray-200 p-4 flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold">Emma Thompson's Birthday</h3>
+                        <p className="text-sm text-gray-500">March 15, 2025</p>
+                      </div>
+                      <div className="bg-pink-100 text-pink-700 text-sm font-medium px-3 py-1 rounded-full">
+                        30 days left
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-4 flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold">Anniversary with Michael</h3>
+                        <p className="text-sm text-gray-500">April 10, 2025</p>
+                      </div>
+                      <div className="bg-pink-100 text-pink-700 text-sm font-medium px-3 py-1 rounded-full">
+                        56 days left
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -69,22 +115,172 @@ function App() {
                 <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
                 <p className="text-gray-600">Track your gift spending and stay within budget.</p>
                 
-                {/* Budget tracker content */}
+                {/* Overall Budget */}
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-xl font-semibold mb-4">Overall Budget</h2>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  <h2 className="text-xl font-semibold mb-4">Annual Budget</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-sm text-gray-500">Total Budget</p>
                       <p className="text-2xl font-bold text-gray-900">$1,000.00</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm text-gray-500">Spent</p>
+                      <p className="text-sm text-gray-500">Spent So Far</p>
                       <p className="text-2xl font-bold text-pink-500">$437.97</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-sm text-gray-500">Remaining</p>
                       <p className="text-2xl font-bold text-green-500">$562.03</p>
                     </div>
+                  </div>
+                  <div className="mb-2 h-4 w-full overflow-hidden rounded-full bg-gray-200">
+                    <div 
+                      className="h-full rounded-full bg-pink-500" 
+                      style={{ width: "43.8%" }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-gray-500">43.8% of budget used</p>
+                </div>
+                
+                {/* Budget By Recipient */}
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4">Budget By Recipient</h2>
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-gray-100 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="font-medium text-gray-900">Emma Thompson</p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-medium text-pink-500">$229.98</span> of $350.00
+                        </p>
+                      </div>
+                      <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: "65.7%" }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-lg border border-gray-100 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="font-medium text-gray-900">Michael Chen</p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-medium text-pink-500">$79.99</span> of $400.00
+                        </p>
+                      </div>
+                      <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: "20%" }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-lg border border-gray-100 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="font-medium text-gray-900">Sarah Johnson</p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-medium text-pink-500">$128.00</span> of $250.00
+                        </p>
+                      </div>
+                      <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: "51.2%" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Budget By Occasion */}
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4">Budget By Occasion</h2>
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-gray-100 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="font-medium text-gray-900">Birthday</p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-medium text-pink-500">$139.99</span> of $450.00
+                        </p>
+                      </div>
+                      <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: "31.1%" }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-lg border border-gray-100 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="font-medium text-gray-900">Christmas</p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-medium text-pink-500">$155.98</span> of $400.00
+                        </p>
+                      </div>
+                      <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: "39%" }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-lg border border-gray-100 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="font-medium text-gray-900">Valentine's Day</p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-medium text-pink-500">$142.00</span> of $150.00
+                        </p>
+                      </div>
+                      <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div 
+                          className="h-full rounded-full bg-pink-500" 
+                          style={{ width: "94.7%" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Recent Purchases */}
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4">Recent Purchases</h2>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Recipient</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Occasion</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        <tr>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Kindle Paperwhite</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">Emma Thompson</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">Birthday</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">2025-03-15</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-pink-500">$139.99</td>
+                        </tr>
+                        <tr>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Hiking Backpack</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">Emma Thompson</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">Christmas</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">2024-12-25</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-pink-500">$89.99</td>
+                        </tr>
+                        <tr>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Cooking Masterclass</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">Michael Chen</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">Valentine's Day</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">2025-02-14</td>
+                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-pink-500">$79.99</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -131,47 +327,135 @@ function App() {
             
             <Route path="/recommendations">
               <div className="space-y-6">
-                <h1 className="text-3xl font-bold text-gray-900">Gift Recommendations</h1>
-                <p className="text-gray-600">Personalized gift ideas for your loved ones.</p>
+                <div className="flex justify-between items-center">
+                  <h1 className="text-3xl font-bold text-gray-900">Recommendations</h1>
+                  <div className="flex gap-4">
+                    <select className="block rounded-md border border-gray-300 p-2">
+                      <option>All Recipients</option>
+                      <option>Emma Thompson</option>
+                      <option>Michael Chen</option>
+                      <option>Sarah Johnson</option>
+                    </select>
+                    <button className="bg-pink-500 text-white px-4 py-2 rounded-md font-medium">
+                      Generate New
+                    </button>
+                  </div>
+                </div>
                 
                 {/* Filter controls */}
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                   <h2 className="text-lg font-semibold mb-4">Filter Recommendations</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">$0</span>
-                        <input type="range" className="w-full" />
-                        <span className="text-sm text-gray-500">$500</span>
+                  
+                  {/* Gift Mood */}
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium mb-4">Gift Mood</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          💭
+                        </div>
+                        <h4 className="font-medium">Thoughtful</h4>
+                        <p className="text-xs text-gray-500">Meaningful gifts that show you care</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          🎮
+                        </div>
+                        <h4 className="font-medium">Fun</h4>
+                        <p className="text-xs text-gray-500">Playful gifts for joy and laughter</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          ❤️
+                        </div>
+                        <h4 className="font-medium">Romantic</h4>
+                        <p className="text-xs text-gray-500">Intimate gifts to express love</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          🔧
+                        </div>
+                        <h4 className="font-medium">Practical</h4>
+                        <p className="text-xs text-gray-500">Useful gifts for everyday life</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          ✨
+                        </div>
+                        <h4 className="font-medium">Luxurious</h4>
+                        <p className="text-xs text-gray-500">High-end gifts for special occasions</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          🎨
+                        </div>
+                        <h4 className="font-medium">Creative</h4>
+                        <p className="text-xs text-gray-500">Artistic gifts to inspire</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          📷
+                        </div>
+                        <h4 className="font-medium">Nostalgic</h4>
+                        <p className="text-xs text-gray-500">Gifts that bring back memories</p>
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-pink-300">
+                        <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
+                          🧘
+                        </div>
+                        <h4 className="font-medium">Relaxing</h4>
+                        <p className="text-xs text-gray-500">Gifts for stress relief and comfort</p>
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Additional Filters */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Price Range */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                      <select className="block w-full rounded-md border border-gray-300 p-2">
-                        <option>All Categories</option>
-                        <option>Technology</option>
-                        <option>Fashion</option>
-                        <option>Home</option>
-                      </select>
+                      <h3 className="text-sm font-medium mb-2">Price Range</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">$0</span>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="500" 
+                          className="h-2 w-full appearance-none rounded-lg bg-gray-200"
+                        />
+                        <span className="text-sm">$500</span>
+                      </div>
                     </div>
+                    
+                    {/* Categories */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Occasion</label>
-                      <select className="block w-full rounded-md border border-gray-300 p-2">
-                        <option>All Occasions</option>
-                        <option>Birthday</option>
-                        <option>Anniversary</option>
-                        <option>Christmas</option>
-                      </select>
+                      <h3 className="text-sm font-medium mb-2">Categories</h3>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Technology</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Experiences</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Outdoors</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Gaming</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Creativity</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Home</span>
+                      </div>
                     </div>
+                    
+                    {/* Occasions */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mood</label>
-                      <select className="block w-full rounded-md border border-gray-300 p-2">
-                        <option>All Moods</option>
-                        <option>Thoughtful</option>
-                        <option>Fun</option>
-                        <option>Practical</option>
-                      </select>
+                      <h3 className="text-sm font-medium mb-2">Occasions</h3>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Birthday</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Anniversary</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Christmas</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Valentine's Day</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">Graduation</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -179,25 +463,94 @@ function App() {
                 {/* Recommendations grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-                    <div className="h-40 bg-gray-100">
+                    <div className="h-48 bg-gray-100">
                       <img 
-                        src="https://images.unsplash.com/photo-1598128558393-70ff21433be0?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=150&q=80" 
+                        src="https://images.unsplash.com/photo-1598128558393-70ff21433be0?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=300&q=80" 
                         alt="Kindle Paperwhite" 
                         className="w-full h-full object-cover"
                       />
+                      <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        98% Match
+                      </div>
                     </div>
                     <div className="p-4">
-                      <div className="flex justify-between">
-                        <h3 className="text-lg font-semibold">Kindle Paperwhite</h3>
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-lg font-medium">Kindle Paperwhite</h3>
                         <p className="text-pink-500 font-bold">$139.99</p>
                       </div>
-                      <p className="text-sm text-gray-500">For: Emma Thompson</p>
-                      <div className="mt-2 flex text-yellow-400">
-                        ★★★★☆
+                      <p className="text-sm text-gray-600 mt-1">For: Emma Thompson</p>
+                      <div className="mt-1 flex items-center text-yellow-400 text-sm">
+                        <span>★★★★☆</span>
+                        <span className="text-gray-500 ml-1">(423 reviews)</span>
                       </div>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Perfect for Emma's love of reading and travel. Waterproof for beach trips.
+                      </p>
                       <div className="mt-4 flex gap-2">
-                        <button className="bg-pink-500 text-white px-3 py-1.5 rounded-md text-sm">Buy Now</button>
-                        <button className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-sm">Save</button>
+                        <button className="bg-pink-500 text-white px-3 py-1.5 rounded-md text-sm font-medium">Buy Now</button>
+                        <button className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium">Save</button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+                    <div className="h-48 bg-gray-100">
+                      <img 
+                        src="https://images.unsplash.com/photo-1608889476518-738c9b1dcb40?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=300&q=80" 
+                        alt="Wireless Noise-Cancelling Headphones" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        95% Match
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-lg font-medium">Wireless Noise-Cancelling Headphones</h3>
+                        <p className="text-pink-500 font-bold">$249.99</p>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">For: Michael Chen</p>
+                      <div className="mt-1 flex items-center text-yellow-400 text-sm">
+                        <span>★★★★★</span>
+                        <span className="text-gray-500 ml-1">(187 reviews)</span>
+                      </div>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Perfect for Michael's gaming sessions and frequent travel.
+                      </p>
+                      <div className="mt-4 flex gap-2">
+                        <button className="bg-pink-500 text-white px-3 py-1.5 rounded-md text-sm font-medium">Buy Now</button>
+                        <button className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium">Save</button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+                    <div className="h-48 bg-gray-100">
+                      <img 
+                        src="https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=300&q=80" 
+                        alt="Fitness Smartwatch" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        93% Match
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-lg font-medium">Fitness Smartwatch</h3>
+                        <p className="text-pink-500 font-bold">$199.99</p>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">For: Sarah Johnson</p>
+                      <div className="mt-1 flex items-center text-yellow-400 text-sm">
+                        <span>★★★★☆</span>
+                        <span className="text-gray-500 ml-1">(341 reviews)</span>
+                      </div>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Tracks workouts, heart rate, and sleep - perfect for her fitness routine.
+                      </p>
+                      <div className="mt-4 flex gap-2">
+                        <button className="bg-pink-500 text-white px-3 py-1.5 rounded-md text-sm font-medium">Buy Now</button>
+                        <button className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium">Save</button>
                       </div>
                     </div>
                   </div>
