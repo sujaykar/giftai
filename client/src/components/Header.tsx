@@ -29,12 +29,6 @@ export function Header({ onLogout }: HeaderProps) {
               Dashboard
             </button>
             <button
-              onClick={() => navigate("/budget-tracker")}
-              className={`px-2 py-1 font-medium ${isActive("/budget-tracker") ? "text-pink-500 border-b-2 border-pink-500" : "text-gray-600 hover:text-pink-500"}`}
-            >
-              Budget Tracker
-            </button>
-            <button
               onClick={() => navigate("/recipients")}
               className={`px-2 py-1 font-medium ${isActive("/recipients") ? "text-pink-500 border-b-2 border-pink-500" : "text-gray-600 hover:text-pink-500"}`}
             >
@@ -45,6 +39,12 @@ export function Header({ onLogout }: HeaderProps) {
               className={`px-2 py-1 font-medium ${isActive("/recommendations") ? "text-pink-500 border-b-2 border-pink-500" : "text-gray-600 hover:text-pink-500"}`}
             >
               Recommendations
+            </button>
+            <button
+              onClick={() => navigate("/budget-tracker")}
+              className={`px-2 py-1 font-medium ${isActive("/budget-tracker") ? "text-pink-500 border-b-2 border-pink-500" : "text-gray-600 hover:text-pink-500"}`}
+            >
+              Budget Tracker
             </button>
           </nav>
           

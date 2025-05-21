@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { Route, Switch, useLocation } from "wouter";
 import { Header } from "./components/Header";
+import { RecipientQuiz } from "./components/RecipientQuiz";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(true); // Set to true for development
@@ -281,42 +282,123 @@ function App() {
             </Route>
             
             <Route path="/recipients">
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold text-gray-900">Your Recipients</h1>
-                <p className="text-gray-600">Manage your gift recipients and their preferences.</p>
-                
-                {/* Recipients list */}
-                <div className="flex justify-end">
-                  <button 
-                    className="bg-pink-500 text-white px-4 py-2 rounded-md flex items-center gap-1"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                    Add Recipient
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-                    <div className="h-40 bg-gray-100">
-                      <img 
-                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=150&q=80" 
-                        alt="Emma Thompson" 
-                        className="w-full h-full object-cover"
+              {({ params }) => {
+                const [showQuiz, setShowQuiz] = useState(false);
+                const [recipients, setRecipients] = useState([
+                  {
+                    id: 1,
+                    name: "Emma Thompson",
+                    relationship: "Friend",
+                    age: 27,
+                    gender: "Female",
+                    imageUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=150&q=80",
+                    interests: ["Reading", "Hiking", "Photography"],
+                    occasions: [{ name: "Birthday", date: "2025-03-15" }],
+                    budget: 350
+                  },
+                  {
+                    id: 2,
+                    name: "Michael Chen",
+                    relationship: "Friend",
+                    age: 32,
+                    gender: "Male",
+                    imageUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=150&q=80",
+                    interests: ["Cooking", "Gaming", "Travel"],
+                    occasions: [{ name: "Christmas", date: "2024-12-25" }],
+                    budget: 400
+                  },
+                  {
+                    id: 3,
+                    name: "Sarah Johnson",
+                    relationship: "Colleague",
+                    age: 35,
+                    gender: "Female",
+                    imageUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=150&q=80",
+                    interests: ["Fitness", "Music", "Art"],
+                    occasions: [{ name: "Birthday", date: "2025-06-10" }],
+                    budget: 250
+                  }
+                ]);
+
+                const handleAddRecipient = (recipientData: any) => {
+                  const newRecipient = {
+                    id: recipients.length + 1,
+                    name: recipientData.name,
+                    relationship: recipientData.relationship,
+                    age: recipientData.age,
+                    gender: recipientData.gender,
+                    imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(recipientData.name)}&background=random`,
+                    interests: recipientData.interests,
+                    occasions: recipientData.occasions,
+                    budget: recipientData.budget
+                  };
+                  
+                  setRecipients([...recipients, newRecipient]);
+                  setShowQuiz(false);
+                };
+
+                return (
+                  <div className="space-y-6">
+                    <h1 className="text-3xl font-bold text-gray-900">Your Recipients</h1>
+                    <p className="text-gray-600">Manage your gift recipients and their preferences.</p>
+                    
+                    {/* Recipients list */}
+                    <div className="flex justify-end">
+                      <button 
+                        onClick={() => setShowQuiz(true)}
+                        className="bg-pink-500 text-white px-4 py-2 rounded-md flex items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                        Add Recipient
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {recipients.map(recipient => (
+                        <div key={recipient.id} className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+                          <div className="h-40 bg-gray-100">
+                            <img 
+                              src={recipient.imageUrl} 
+                              alt={recipient.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="p-4">
+                            <h3 className="text-lg font-semibold">{recipient.name}</h3>
+                            <p className="text-sm text-gray-500">
+                              {recipient.relationship} • {recipient.age} years
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {recipient.interests.map(interest => (
+                                <span key={interest} className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-medium">
+                                  {interest}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="mt-4 pt-3 border-t border-gray-100">
+                              <p className="text-sm text-gray-500">
+                                <span className="font-medium">Next occasion:</span>{' '}
+                                {recipient.occasions[0]?.name} on {new Date(recipient.occasions[0]?.date).toLocaleDateString()}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                <span className="font-medium">Budget:</span> ${recipient.budget}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {showQuiz && (
+                      <RecipientQuiz 
+                        onComplete={handleAddRecipient} 
+                        onCancel={() => setShowQuiz(false)} 
                       />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold">Emma Thompson</h3>
-                      <p className="text-sm text-gray-500">Friend</p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-medium">Reading</span>
-                        <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-medium">Hiking</span>
-                        <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-medium">Technology</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                </div>
-              </div>
+                );
+              }}
             </Route>
             
             <Route path="/recommendations">
@@ -611,6 +693,30 @@ function App() {
           >
             Sign In
           </button>
+          
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-2 text-gray-500">Or continue with</span>
+            </div>
+          </div>
+          
+          <div className="mt-3">
+            <button
+              onClick={() => window.location.href = '/api/auth/google'}
+              className="w-full flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px">
+                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+              </svg>
+              Sign in with Google
+            </button>
+          </div>
           
           <div className="text-center text-sm">
             <p className="text-gray-500">
