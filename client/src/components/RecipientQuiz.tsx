@@ -301,8 +301,8 @@ export function RecipientQuiz({ onComplete, onCancel }: RecipientQuizProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-        <div className="p-6">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 relative">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Add New Recipient</h2>
             <button 
@@ -328,11 +328,11 @@ export function RecipientQuiz({ onComplete, onCancel }: RecipientQuizProps) {
             </div>
           </div>
           
-          <div className="min-h-[300px]">
+          <div className="min-h-[200px]">
             {renderStep()}
           </div>
           
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between mt-4 sticky bottom-0 pt-3 bg-white border-t border-gray-100">
             <button
               onClick={handleBack}
               className="px-5 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium text-base"
