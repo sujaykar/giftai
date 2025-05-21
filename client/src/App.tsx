@@ -1,18 +1,12 @@
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { Route, Switch, useLocation } from "wouter";
-import { FullNav } from "./components/MainNav";
+import { Header } from "./components/Header";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(true); // Set to true for development
-  const [activeTab, setActiveTab] = useState("dashboard");
   const [location, setLocation] = useLocation();
   const [showLoginForm, setShowLoginForm] = useState(false);
-
-  // Set active tab based on current location
-  useEffect(() => {
-    setActiveTab(determineActiveTab());
-  }, [location]);
 
   // Basic handlers
   const handleLogin = () => {
@@ -26,20 +20,6 @@ function App() {
     setLocation("/");
   };
 
-  // Determine active tab from location
-  const determineActiveTab = () => {
-    if (location === "/" || location === "/dashboard") {
-      return "dashboard";
-    } else if (location === "/budget-tracker") {
-      return "budget-tracker";
-    } else if (location === "/recipients") {
-      return "recipients";
-    } else if (location === "/recommendations") {
-      return "recommendations";
-    }
-    return "dashboard";
-  };
-
   // Redirect to dashboard if logged in and at root
   useEffect(() => {
     if (loggedIn && location === "/") {
@@ -51,7 +31,7 @@ function App() {
   if (loggedIn) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <FullNav activeTab={determineActiveTab()} onLogout={handleLogout} />
+        <Header onLogout={handleLogout} />
         
         <div className="container mx-auto p-6">
           <Switch>
