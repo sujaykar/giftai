@@ -1,22 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { Route, Switch, useLocation } from "wouter";
 import { FullNav } from "./components/MainNav";
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(true); // Set to true for development
   const [activeTab, setActiveTab] = useState("dashboard");
   const [location, setLocation] = useLocation();
   const [showLoginForm, setShowLoginForm] = useState(false);
 
+  // Set active tab based on current location
+  useEffect(() => {
+    setActiveTab(determineActiveTab());
+  }, [location]);
+
   // Basic handlers
   const handleLogin = () => {
     setLoggedIn(true);
+    setLocation("/dashboard");
   };
 
   const handleLogout = () => {
     setLoggedIn(false);
     setShowLoginForm(false);
+    setLocation("/");
   };
 
   // Determine active tab from location
@@ -32,6 +39,13 @@ function App() {
     }
     return "dashboard";
   };
+
+  // Redirect to dashboard if logged in and at root
+  useEffect(() => {
+    if (loggedIn && location === "/") {
+      setLocation("/dashboard");
+    }
+  }, [loggedIn, location, setLocation]);
 
   // Authentication state - logged in
   if (loggedIn) {
