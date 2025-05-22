@@ -1,5 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// API Gateway endpoint from environment variables
+const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -7,20 +10,54 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+// Convert internal API paths to API Gateway paths
+function getApiUrl(url: string): string {
+  // If it's already an absolute URL, return as is
+  if (url.startsWith('http')) {
+    return url;
+  }
+  
+  // Convert paths like /api/auth/login to /auth
+  // or /api/recipients/1 to /recipients/1
+  const apiPath = url.replace(/^\/api\//, '/');
+  
+  return `${API_ENDPOINT}${apiPath}`;
+}
 
+export async function apiRequest(
+  url: string,
+  options: {
+    method?: string;
+    body?: any;
+    headers?: Record<string, string>;
+  } = {}
+): Promise<any> {
+  const { method = 'GET', body, headers = {} } = options;
+  
+  const apiUrl = getApiUrl(url);
+  
+  const requestOptions: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers
+    },
+    credentials: "include",
+  };
+  
+  if (body) {
+    requestOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+  }
+  
+  const res = await fetch(apiUrl, requestOptions);
   await throwIfResNotOk(res);
-  return res;
+  
+  // For methods like DELETE that might not return content
+  if (res.status === 204) {
+    return null;
+  }
+  
+  return await res.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -29,7 +66,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    const url = queryKey[0] as string;
+    const apiUrl = getApiUrl(url);
+    
+    const res = await fetch(apiUrl, {
       credentials: "include",
     });
 
