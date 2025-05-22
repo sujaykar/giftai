@@ -40,7 +40,9 @@ export default function RecipientDetailPage({ id }: RecipientDetailPageProps) {
 
   // Generate new recommendations mutation
   const generateMutation = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/recipients/${id}/recommendations/generate`, {}),
+    mutationFn: () => apiRequest(`/api/recipients/${id}/recommendations/generate`, {
+      method: 'POST' 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/recipients/${id}/recommendations`] });
       toast({
@@ -60,7 +62,9 @@ export default function RecipientDetailPage({ id }: RecipientDetailPageProps) {
 
   // Delete recipient mutation
   const deleteMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", `/api/recipients/${id}`, {}),
+    mutationFn: () => apiRequest(`/api/recipients/${id}`, {
+      method: 'DELETE'
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/recipients'] });
       toast({
