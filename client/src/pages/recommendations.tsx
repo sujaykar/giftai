@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Heart, DollarSign, X, ThumbsUp } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronUp, Heart, DollarSign, X, ThumbsUp, ArrowUp, ArrowDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function Recommendations() {
@@ -67,6 +67,15 @@ export default function Recommendations() {
   // Apply filters function
   const applyFilters = () => {
     setFilter(tempFilter);
+  };
+
+  // Scroll functions for better UX
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
   // Mock data for learning demo
@@ -223,27 +232,57 @@ export default function Recommendations() {
         {/* Two Section Layout: Filters Left, Products Right */}
         <div className="flex gap-8">
           
-          {/* Left Section - Filters */}
-          <div className="w-80 flex-shrink-0">
-            <Card className="sticky top-8 shadow-lg border-0 bg-white rounded-xl">
-              <CardHeader className="pb-4 border-b border-gray-100">
-                <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
+          {/* Left Section - Enhanced Filters with Navigation */}
+          <div className="w-80 flex-shrink-0 space-y-4">
+            {/* Page Navigation Controls */}
+            <Card className="shadow-md border-0 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-800 mb-3 text-center">📍 Quick Navigation</h3>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={scrollToTop}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-200"
+                  >
+                    <ArrowUp className="h-4 w-4 mr-1" />
+                    Top
+                  </Button>
+                  <Button
+                    onClick={scrollToBottom}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-200"
+                  >
+                    <ArrowDown className="h-4 w-4 mr-1" />
+                    Bottom
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Enhanced Filter Card */}
+            <Card className="sticky top-8 shadow-xl border-0 bg-white rounded-xl overflow-hidden">
+              <CardHeader className="pb-4 border-b border-gray-100 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+                <CardTitle className="text-xl font-bold flex items-center">
                   🎯 Smart Filters
                 </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">Customize your gift search preferences</p>
+                <p className="text-pink-100 mt-1">Find the perfect gift with AI-powered filtering</p>
               </CardHeader>
               
               <CardContent className="space-y-6 p-6">
                 
-                {/* Recipient Dropdown */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Select Recipient</label>
+                {/* Recipient Dropdown - Enhanced */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <label className="flex items-center text-sm font-bold text-blue-800 mb-3">
+                    👤 Who are you shopping for?
+                  </label>
                   <select
                     value={tempFilter.recipient}
                     onChange={(e) => setTempFilter({...tempFilter, recipient: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white"
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all duration-200 hover:shadow-md"
                   >
-                    <option value="all">All Recipients</option>
+                    <option value="all">🌟 Show gifts for everyone</option>
                     {mockRecipients.map((recipient) => (
                       <option key={recipient.id} value={recipient.id}>
                         {recipient.name} ({recipient.relationship})
@@ -252,15 +291,17 @@ export default function Recommendations() {
                   </select>
                 </div>
 
-                {/* Occasion Dropdown */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">🎉 Select Occasion</label>
+                {/* Occasion Dropdown - Enhanced */}
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                  <label className="flex items-center text-sm font-bold text-purple-800 mb-3">
+                    🎉 What's the special occasion?
+                  </label>
                   <select
                     value={tempFilter.occasion}
                     onChange={(e) => setTempFilter({...tempFilter, occasion: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white"
+                    className="w-full p-3 border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm transition-all duration-200 hover:shadow-md"
                   >
-                    <option value="all">All Occasions</option>
+                    <option value="all">🎊 Perfect for any celebration</option>
                     {mockOccasions.map((occasion) => (
                       <option key={occasion.id} value={occasion.name}>
                         {occasion.name} ({occasion.type})
@@ -269,14 +310,24 @@ export default function Recommendations() {
                   </select>
                 </div>
 
-                {/* Mood Filter */}
+                {/* Results Counter */}
+                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 text-center">
+                  <p className="text-sm font-semibold text-green-800">
+                    🎁 {filteredRecommendations.length} perfect gifts found!
+                  </p>
+                </div>
+
+                {/* Mood Filter - Enhanced */}
                 <Collapsible 
                   open={filtersOpen.mood} 
                   onOpenChange={(open) => setFiltersOpen({...filtersOpen, mood: open})}
                 >
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-pink-50 rounded-lg transition-colors border border-gray-200">
-                    <span className="font-semibold text-gray-700">🎭 Mood</span>
-                    {filtersOpen.mood ? <ChevronDown className="h-5 w-5 text-pink-500" /> : <ChevronRight className="h-5 w-5 text-gray-400" />}
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 rounded-lg transition-all duration-200 border-2 border-pink-200 hover:border-pink-300 shadow-sm hover:shadow-md">
+                    <span className="font-bold text-pink-700 flex items-center">
+                      🎭 What's the vibe?
+                      <Badge variant="secondary" className="ml-2 text-xs">{tempFilter.mood !== "all" ? tempFilter.mood : "Any"}</Badge>
+                    </span>
+                    {filtersOpen.mood ? <ChevronDown className="h-5 w-5 text-pink-500" /> : <ChevronRight className="h-5 w-5 text-pink-400" />}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pt-4 space-y-3 pl-2">
                     {["all", "cozy", "elegant", "modern", "thoughtful", "active", "relaxing"].map((mood) => (
