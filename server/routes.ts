@@ -8,6 +8,7 @@ import { productController } from "./controllers/product-controller";
 import { hybridRecommendationController } from "./controllers/hybrid-recommendation-controller";
 import { relationshipGiftController } from "./controllers/relationship-gift-controller";
 import { productScraperController } from "./controllers/product-scraper-controller";
+import { feedbackController } from "./controllers/feedback-controller";
 import { isAdmin } from "./middleware/admin-auth";
 import { apiKeyAuth } from "./middleware/api-key-auth";
 import session from "express-session";
@@ -168,6 +169,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jobs/scraper/run", apiKeyAuth, productScraperController.runFullScraping);
 
   // Stats routes
+  // Feedback and learning routes
+  app.post("/api/feedback/record", isAuthenticated, feedbackController.recordFeedback);
+  app.post("/api/feedback/personalized-recommendations", isAuthenticated, feedbackController.getPersonalizedRecommendations);
+  app.get("/api/feedback/insights", isAuthenticated, feedbackController.getFeedbackInsights);
+  app.post("/api/products/:productId/classify", isAuthenticated, feedbackController.classifyProduct);
+  app.get("/api/products/:productId/enhanced", isAuthenticated, feedbackController.getEnhancedProduct);
+  app.post("/api/products/batch-classify", isAuthenticated, feedbackController.batchClassifyProducts);
+
   app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req.user as any).id;
