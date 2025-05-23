@@ -643,12 +643,20 @@ function App() {
             <Sparkles className="h-6 w-6 text-pink-500" />
             <span className="text-2xl font-bold text-pink-500">GIFT AI</span>
           </div>
-          <button 
-            onClick={() => setShowLoginForm(true)} 
-            className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
-          >
-            Sign In
-          </button>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setLocation("/how-it-works")}
+              className="text-gray-600 hover:text-pink-500 font-medium transition-colors"
+            >
+              How It Works
+            </button>
+            <button 
+              onClick={() => setShowLoginForm(true)} 
+              className="rounded-md bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
+            >
+              Sign In
+            </button>
+          </div>
         </div>
       </header>
       
