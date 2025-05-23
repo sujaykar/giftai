@@ -4,6 +4,9 @@ import { Route, Switch, useLocation } from "wouter";
 import { Header } from "./components/Header";
 import { RecipientQuiz } from "./components/RecipientQuiz";
 import { RecipientsPage } from "./pages/RecipientsPage";
+import LearningDemoPage from "./pages/learning-demo";
+import DashboardPage from "./pages/dashboard";
+import RecommendationsPage from "./pages/recommendations";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(true); // Set to true for development
@@ -284,6 +287,14 @@ function App() {
             
             <Route path="/recipients">
               <RecipientsPage />
+            </Route>
+            
+            <Route path="/recommendations">
+              <RecommendationsPage />
+            </Route>
+            
+            <Route path="/learning-demo">
+              <LearningDemoPage />
             </Route>
             
             <Route path="/recommendations">

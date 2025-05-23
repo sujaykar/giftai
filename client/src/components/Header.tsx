@@ -41,6 +41,12 @@ export function Header({ onLogout }: HeaderProps) {
               Recommendations
             </button>
             <button
+              onClick={() => navigate("/learning-demo")}
+              className={`px-2 py-1 font-medium ${isActive("/learning-demo") ? "text-pink-500 border-b-2 border-pink-500" : "text-gray-600 hover:text-pink-500"}`}
+            >
+              AI Learning Demo
+            </button>
+            <button
               onClick={() => navigate("/budget-tracker")}
               className={`px-2 py-1 font-medium ${isActive("/budget-tracker") ? "text-pink-500 border-b-2 border-pink-500" : "text-gray-600 hover:text-pink-500"}`}
             >
