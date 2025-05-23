@@ -86,7 +86,7 @@ export default function Recommendations() {
 
 
 
-  // Mock data for learning demo
+  // Mock data for recommendations
   const mockRecommendations = [
     {
       id: 1,
