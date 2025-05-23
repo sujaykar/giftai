@@ -231,3 +231,70 @@ export const insertUserSimilaritySchema = createInsertSchema(userSimilarity)
 
 export type InsertUserSimilarity = z.infer<typeof insertUserSimilaritySchema>;
 export type UserSimilarity = typeof userSimilarity.$inferSelect;
+
+// User Feedback table for reinforcement learning
+export const userFeedback = pgTable("user_feedback", {
+  id: serial("id").primaryKey(),
+  uuid: uuid("uuid").notNull().defaultRandom(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  recommendationId: integer("recommendation_id").references(() => recommendations.id),
+  productId: integer("product_id").notNull().references(() => products.id),
+  recipientId: integer("recipient_id").references(() => recipients.id),
+  
+  // Feedback signals
+  feedbackType: varchar("feedback_type", { length: 20 }).notNull(), // like, dislike, view, click, purchase, share
+  feedbackValue: decimal("feedback_value", { precision: 3, scale: 2 }).notNull(), // -1 to 1 scale
+  contextType: varchar("context_type", { length: 50 }), // recommendation, search, browse
+  
+  // Detailed feedback reasons
+  reasons: text("reasons").array(), // too_expensive, wrong_style, not_interesting, etc.
+  alternativePreferences: jsonb("alternative_preferences"), // What they would prefer instead
+  
+  // Session context
+  sessionId: varchar("session_id", { length: 100 }),
+  deviceType: varchar("device_type", { length: 20 }),
+  timeSpent: integer("time_spent"), // seconds spent viewing
+  
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const insertUserFeedbackSchema = createInsertSchema(userFeedback)
+  .omit({ id: true, uuid: true, createdAt: true });
+
+export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
+export type UserFeedback = typeof userFeedback.$inferSelect;
+
+// Product Classification Enhancement table
+export const productClassification = pgTable("product_classification", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => products.id),
+  
+  // AI-generated classifications
+  sentimentScore: decimal("sentiment_score", { precision: 3, scale: 2 }), // Emotional appeal (-1 to 1)
+  practicalityScore: decimal("practicality_score", { precision: 3, scale: 2 }), // How practical (0 to 1)
+  uniquenessScore: decimal("uniqueness_score", { precision: 3, scale: 2 }), // How unique (0 to 1)
+  luxuryScore: decimal("luxury_score", { precision: 3, scale: 2 }), // How luxurious (0 to 1)
+  giftabilityScore: decimal("giftability_score", { precision: 3, scale: 2 }), // Overall gift potential (0 to 1)
+  
+  // Personality fit scores
+  personalityScores: jsonb("personality_scores"), // Scores for different personality types
+  relationshipFit: jsonb("relationship_fit"), // Fit scores for different relationships
+  occasionFit: jsonb("occasion_fit"), // Fit scores for different occasions
+  
+  // AI analysis
+  aiDescription: text("ai_description"), // AI-generated description of gift appeal
+  targetPersona: text("target_persona"), // Who this gift is perfect for
+  giftingContext: text("gifting_context"), // When/why to give this gift
+  
+  // Classification metadata
+  classificationModel: varchar("classification_model", { length: 50 }), // Which model generated this
+  confidenceLevel: decimal("confidence_level", { precision: 3, scale: 2 }), // How confident the AI is
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const insertProductClassificationSchema = createInsertSchema(productClassification)
+  .omit({ id: true, lastUpdated: true, createdAt: true });
+
+export type InsertProductClassification = z.infer<typeof insertProductClassificationSchema>;
+export type ProductClassification = typeof productClassification.$inferSelect;
