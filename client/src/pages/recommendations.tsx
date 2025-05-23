@@ -21,7 +21,7 @@ export default function Recommendations() {
   });
 
   // Track removed products for learning demo
-  const [removedProducts, setRemovedProducts] = useState(new Set());
+  const [removedProducts, setRemovedProducts] = useState(new Set<number>());
 
   // Collapsible filter states
   const [filtersOpen, setFiltersOpen] = useState({
@@ -30,6 +30,20 @@ export default function Recommendations() {
     category: false,
     recipient: false
   });
+
+  // Temporary filter state for apply functionality
+  const [tempFilter, setTempFilter] = useState({
+    recipient: "all",
+    priceRange: "all",
+    status: "all",
+    mood: "all",
+    category: "all"
+  });
+
+  // Apply filters function
+  const applyFilters = () => {
+    setFilter(tempFilter);
+  };
 
   // Mock data for learning demo
   const mockRecommendations = [
@@ -132,7 +146,7 @@ export default function Recommendations() {
   // Handle feedback actions
   const handleFeedback = (productId: number, feedbackType: string) => {
     if (feedbackType === 'too_expensive' || feedbackType === 'wrong_style') {
-      setRemovedProducts(prev => new Set([...prev, productId]));
+      setRemovedProducts(prev => new Set([...Array.from(prev), productId]));
     }
     
     // Here you would normally send feedback to your AI system
@@ -162,216 +176,266 @@ export default function Recommendations() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Sidebar - Collapsible Filters */}
-        <div className="lg:w-80 flex-shrink-0">
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle>AI Learning Filters</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-6 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* Left Sidebar - Elegant Collapsible Filters */}
+          <div className="lg:w-80 flex-shrink-0">
+            <Card className="sticky top-8 shadow-lg border-0 bg-white rounded-xl">
+              <CardHeader className="pb-4 border-b border-gray-100">
+                <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
+                  🎯 Smart Filters
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">Customize your gift search preferences</p>
+              </CardHeader>
               
-              {/* Mood Filter */}
-              <Collapsible 
-                open={filtersOpen.mood} 
-                onOpenChange={(open) => setFiltersOpen({...filtersOpen, mood: open})}
-              >
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded">
-                  <span className="font-medium">Mood</span>
-                  {filtersOpen.mood ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2 space-y-2">
-                  {["all", "cozy", "elegant", "modern", "thoughtful", "active", "relaxing"].map((mood) => (
-                    <label key={mood} className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="mood"
-                        value={mood}
-                        checked={filter.mood === mood}
-                        onChange={(e) => setFilter({...filter, mood: e.target.value})}
-                        className="text-pink-500"
-                      />
-                      <span className="capitalize">{mood === "all" ? "All Moods" : mood}</span>
-                    </label>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+              <CardContent className="space-y-6 p-6">
+                
+                {/* Mood Filter */}
+                <Collapsible 
+                  open={filtersOpen.mood} 
+                  onOpenChange={(open) => setFiltersOpen({...filtersOpen, mood: open})}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-pink-50 rounded-lg transition-colors border border-gray-200">
+                    <span className="font-semibold text-gray-700">🎭 Mood</span>
+                    {filtersOpen.mood ? <ChevronDown className="h-5 w-5 text-pink-500" /> : <ChevronRight className="h-5 w-5 text-gray-400" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4 space-y-3 pl-2">
+                    {["all", "cozy", "elegant", "modern", "thoughtful", "active", "relaxing"].map((mood) => (
+                      <label key={mood} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <input
+                          type="radio"
+                          name="mood"
+                          value={mood}
+                          checked={tempFilter.mood === mood}
+                          onChange={(e) => setTempFilter({...tempFilter, mood: e.target.value})}
+                          className="text-pink-500 focus:ring-pink-500"
+                        />
+                        <span className="capitalize text-gray-700">{mood === "all" ? "All Moods" : mood}</span>
+                      </label>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {/* Price Filter */}
-              <Collapsible 
-                open={filtersOpen.price} 
-                onOpenChange={(open) => setFiltersOpen({...filtersOpen, price: open})}
-              >
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded">
-                  <span className="font-medium">Price Range</span>
-                  {filtersOpen.price ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2 space-y-2">
-                  {[
-                    {value: "all", label: "All Prices"},
-                    {value: "under-50", label: "Under $50"},
-                    {value: "50-100", label: "$50 - $100"},
-                    {value: "100-200", label: "$100 - $200"},
-                    {value: "above-200", label: "Above $200"}
-                  ].map((price) => (
-                    <label key={price.value} className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="priceRange"
-                        value={price.value}
-                        checked={filter.priceRange === price.value}
-                        onChange={(e) => setFilter({...filter, priceRange: e.target.value})}
-                        className="text-pink-500"
-                      />
-                      <span>{price.label}</span>
-                    </label>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+                {/* Price Filter */}
+                <Collapsible 
+                  open={filtersOpen.price} 
+                  onOpenChange={(open) => setFiltersOpen({...filtersOpen, price: open})}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-pink-50 rounded-lg transition-colors border border-gray-200">
+                    <span className="font-semibold text-gray-700">💰 Price Range</span>
+                    {filtersOpen.price ? <ChevronDown className="h-5 w-5 text-pink-500" /> : <ChevronRight className="h-5 w-5 text-gray-400" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4 space-y-3 pl-2">
+                    {[
+                      {value: "all", label: "All Prices"},
+                      {value: "under-50", label: "Under $50"},
+                      {value: "50-100", label: "$50 - $100"},
+                      {value: "100-200", label: "$100 - $200"},
+                      {value: "above-200", label: "Above $200"}
+                    ].map((price) => (
+                      <label key={price.value} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <input
+                          type="radio"
+                          name="priceRange"
+                          value={price.value}
+                          checked={tempFilter.priceRange === price.value}
+                          onChange={(e) => setTempFilter({...tempFilter, priceRange: e.target.value})}
+                          className="text-pink-500 focus:ring-pink-500"
+                        />
+                        <span className="text-gray-700">{price.label}</span>
+                      </label>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {/* Category Filter */}
-              <Collapsible 
-                open={filtersOpen.category} 
-                onOpenChange={(open) => setFiltersOpen({...filtersOpen, category: open})}
-              >
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded">
-                  <span className="font-medium">Category</span>
-                  {filtersOpen.category ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2 space-y-2">
-                  {["all", "Home & Kitchen", "Fashion", "Electronics", "Stationery", "Food & Drink"].map((category) => (
-                    <label key={category} className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="category"
-                        value={category}
-                        checked={filter.category === category}
-                        onChange={(e) => setFilter({...filter, category: e.target.value})}
-                        className="text-pink-500"
-                      />
-                      <span>{category === "all" ? "All Categories" : category}</span>
-                    </label>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+                {/* Category Filter */}
+                <Collapsible 
+                  open={filtersOpen.category} 
+                  onOpenChange={(open) => setFiltersOpen({...filtersOpen, category: open})}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-pink-50 rounded-lg transition-colors border border-gray-200">
+                    <span className="font-semibold text-gray-700">📂 Category</span>
+                    {filtersOpen.category ? <ChevronDown className="h-5 w-5 text-pink-500" /> : <ChevronRight className="h-5 w-5 text-gray-400" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4 space-y-3 pl-2">
+                    {["all", "Home & Kitchen", "Fashion", "Electronics", "Stationery", "Food & Drink"].map((category) => (
+                      <label key={category} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <input
+                          type="radio"
+                          name="category"
+                          value={category}
+                          checked={tempFilter.category === category}
+                          onChange={(e) => setTempFilter({...tempFilter, category: e.target.value})}
+                          className="text-pink-500 focus:ring-pink-500"
+                        />
+                        <span className="text-gray-700">{category === "all" ? "All Categories" : category}</span>
+                      </label>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
 
-              {/* Clear Filters */}
-              <Button
-                variant="outline"
-                onClick={() => setFilter({ 
-                  recipient: "all", 
-                  priceRange: "all", 
-                  status: "all", 
-                  mood: "all", 
-                  category: "all" 
-                })}
-                className="w-full"
-              >
-                Clear All Filters
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Content - Product Recommendations */}
-        <div className="flex-1">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Gift Recommendations</h1>
-            <p className="text-gray-600">Click the feedback buttons to help the AI learn your preferences!</p>
+                {/* Apply and Clear Buttons */}
+                <div className="space-y-3 pt-6 border-t border-gray-100">
+                  <Button
+                    onClick={applyFilters}
+                    className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
+                  >
+                    Apply Filters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const resetFilters = { 
+                        recipient: "all", 
+                        priceRange: "all", 
+                        status: "all", 
+                        mood: "all", 
+                        category: "all" 
+                      };
+                      setTempFilter(resetFilters);
+                      setFilter(resetFilters);
+                    }}
+                    className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 py-3 rounded-lg"
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Loading State */}
-          {isLoading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading recommendations...</p>
+          {/* Right Content - Product Recommendations */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">AI Gift Recommendations</h1>
+              <p className="text-lg text-gray-600">Click the feedback buttons to help the AI learn your preferences and improve future suggestions!</p>
             </div>
-          )}
 
-          {/* Recommendations Grid */}
-          {!isLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredRecommendations.length > 0 ? (
-                filteredRecommendations.map((rec: any) => (
-                  <Card key={rec.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-square overflow-hidden">
-                      <img 
-                        src={rec.product.imageUrl} 
-                        alt={rec.product.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-lg line-clamp-2">{rec.product.name}</h3>
-                        <Badge variant="secondary" className="ml-2 shrink-0">
-                          {rec.recommendationScore}
-                        </Badge>
-                      </div>
-                      
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{rec.product.description}</p>
-                      
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-2xl font-bold text-green-600">${rec.product.price}</span>
-                        <Badge variant="outline">{rec.mood}</Badge>
-                      </div>
+            {/* Active Filters Display */}
+            {(filter.mood !== "all" || filter.priceRange !== "all" || filter.category !== "all") && (
+              <div className="mb-6 p-4 bg-pink-50 rounded-lg border border-pink-200">
+                <h3 className="font-semibold text-pink-800 mb-2">Active Filters:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {filter.mood !== "all" && <Badge variant="secondary" className="bg-pink-100 text-pink-800">Mood: {filter.mood}</Badge>}
+                  {filter.priceRange !== "all" && <Badge variant="secondary" className="bg-pink-100 text-pink-800">Price: {filter.priceRange}</Badge>}
+                  {filter.category !== "all" && <Badge variant="secondary" className="bg-pink-100 text-pink-800">Category: {filter.category}</Badge>}
+                </div>
+              </div>
+            )}
 
-                      {/* AI Learning Feedback Buttons */}
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
+            {/* Loading State */}
+            {isLoading && (
+              <div className="text-center py-16">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-pink-600 mx-auto"></div>
+                <p className="mt-6 text-lg text-gray-600">Loading recommendations...</p>
+              </div>
+            )}
+
+            {/* Recommendations Grid */}
+            {!isLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                {filteredRecommendations.length > 0 ? (
+                  filteredRecommendations.map((rec: any) => (
+                    <Card key={rec.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white rounded-xl border-0 shadow-lg">
+                      <div className="aspect-square overflow-hidden relative">
+                        <img 
+                          src={rec.product.imageUrl} 
+                          alt={rec.product.name}
+                          className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute top-3 right-3">
+                          <Badge className="bg-white/90 text-gray-800 shadow-md">
+                            {rec.recommendationScore}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardContent className="p-6">
+                        <div className="mb-3">
+                          <h3 className="font-bold text-xl text-gray-900 mb-2 line-clamp-2">{rec.product.name}</h3>
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{rec.product.description}</p>
+                        </div>
+                        
+                        <div className="flex justify-between items-center mb-6">
+                          <span className="text-3xl font-bold text-green-600">${rec.product.price}</span>
+                          <Badge variant="outline" className="px-3 py-1">{rec.mood}</Badge>
+                        </div>
+
+                        {/* AI Learning Feedback Buttons */}
+                        <div className="space-y-3">
+                          <div className="flex gap-3">
+                            <Button
+                              onClick={() => handleFeedback(rec.product.id, 'like')}
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 text-green-600 border-green-300 hover:bg-green-50 transition-colors"
+                            >
+                              <ThumbsUp className="h-4 w-4 mr-2" />
+                              Like
+                            </Button>
+                            <Button
+                              onClick={() => handleFeedback(rec.product.id, 'too_expensive')}
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 text-orange-600 border-orange-300 hover:bg-orange-50 transition-colors"
+                            >
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Too Expensive
+                            </Button>
+                          </div>
                           <Button
-                            onClick={() => handleFeedback(rec.product.id, 'like')}
+                            onClick={() => handleFeedback(rec.product.id, 'wrong_style')}
                             variant="outline"
                             size="sm"
-                            className="flex-1 text-green-600 border-green-200 hover:bg-green-50"
+                            className="w-full text-red-600 border-red-300 hover:bg-red-50 transition-colors"
                           >
-                            <ThumbsUp className="h-4 w-4 mr-1" />
-                            Like
-                          </Button>
-                          <Button
-                            onClick={() => handleFeedback(rec.product.id, 'too_expensive')}
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 text-orange-600 border-orange-200 hover:bg-orange-50"
-                          >
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            Too Expensive
+                            <X className="h-4 w-4 mr-2" />
+                            Wrong Style
                           </Button>
                         </div>
-                        <Button
-                          onClick={() => handleFeedback(rec.product.id, 'wrong_style')}
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Wrong Style
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-gray-600 text-lg">No recommendations found matching your filters.</p>
-                  <p className="text-gray-500 mt-2">Try adjusting your filters or clearing them to see more options.</p>
-                </div>
-              )}
-            </div>
-          )}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-16">
+                    <div className="max-w-md mx-auto">
+                      <p className="text-xl text-gray-600 mb-4">No recommendations found matching your filters.</p>
+                      <p className="text-gray-500 mb-6">Try adjusting your filters or clearing them to see more gift options.</p>
+                      <Button
+                        onClick={() => {
+                          const resetFilters = { 
+                            recipient: "all", 
+                            priceRange: "all", 
+                            status: "all", 
+                            mood: "all", 
+                            category: "all" 
+                          };
+                          setTempFilter(resetFilters);
+                          setFilter(resetFilters);
+                        }}
+                        className="bg-pink-600 hover:bg-pink-700 text-white"
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-          {/* Removed Products Counter */}
-          {removedProducts.size > 0 && (
-            <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-              <p className="text-blue-800 font-medium">
-                🎯 AI Learning: Removed {removedProducts.size} product{removedProducts.size !== 1 ? 's' : ''} based on your feedback!
-              </p>
-              <p className="text-blue-600 text-sm mt-1">
-                The AI is learning your preferences and will show better recommendations next time.
-              </p>
-            </div>
-          )}
+            {/* AI Learning Counter */}
+            {removedProducts.size > 0 && (
+              <div className="mt-10 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <p className="text-blue-800 font-bold text-lg mb-2">
+                  🎯 AI Learning Progress: Removed {removedProducts.size} product{removedProducts.size !== 1 ? 's' : ''} based on your feedback!
+                </p>
+                <p className="text-blue-700">
+                  The AI is analyzing your preferences and will provide more personalized recommendations in your next session.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
