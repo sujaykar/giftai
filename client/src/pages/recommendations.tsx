@@ -3,10 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import RecommendationCard from "@/components/dashboard/recommendation-card";
-import { useAuth } from "@/hooks/use-auth";
-
 export default function Recommendations() {
-  const { user } = useAuth();
+  // Mock user for development testing
+  const user = { id: 1, name: "Demo User" };
   const [filter, setFilter] = useState({
     recipient: "all",
     priceRange: "all",
