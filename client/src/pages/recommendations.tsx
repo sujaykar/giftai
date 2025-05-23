@@ -85,13 +85,33 @@ export default function Recommendations() {
     setOccasionFilter(tempOccasionFilter);
   };
 
-  // Scroll functions for better UX
+  // Enhanced scroll functions for seamless UX
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ 
+      top: 0, 
+      behavior: 'smooth' 
+    });
   };
 
   const scrollToBottom = () => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    window.scrollTo({ 
+      top: document.documentElement.scrollHeight, 
+      behavior: 'smooth' 
+    });
+  };
+
+  const scrollUp = () => {
+    window.scrollBy({ 
+      top: -window.innerHeight * 0.8, 
+      behavior: 'smooth' 
+    });
+  };
+
+  const scrollDown = () => {
+    window.scrollBy({ 
+      top: window.innerHeight * 0.8, 
+      behavior: 'smooth' 
+    });
   };
 
   // Mock data for learning demo
@@ -250,28 +270,48 @@ export default function Recommendations() {
   // Render filter section for recipients
   const renderRecipientFilters = () => (
     <div className="w-80 flex-shrink-0 space-y-4">
-      {/* Page Navigation Controls */}
-      <Card className="shadow-md border-0 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
+      {/* Enhanced Seamless Navigation Controls */}
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
         <CardContent className="p-4">
-          <h3 className="font-semibold text-gray-800 mb-3 text-center">📍 Quick Navigation</h3>
-          <div className="flex gap-2">
+          <h3 className="font-semibold text-gray-800 mb-3 text-center">📍 Seamless Navigation</h3>
+          <div className="grid grid-cols-2 gap-2 mb-3">
             <Button
               onClick={scrollToTop}
               variant="outline"
               size="sm"
-              className="flex-1 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-200"
+              className="bg-white/90 hover:bg-white hover:shadow-lg transition-all duration-300 text-xs font-medium"
             >
-              <ArrowUp className="h-4 w-4 mr-1" />
-              Top
+              <ArrowUp className="h-3 w-3 mr-1" />
+              Jump to Top
             </Button>
             <Button
               onClick={scrollToBottom}
               variant="outline"
               size="sm"
-              className="flex-1 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-200"
+              className="bg-white/90 hover:bg-white hover:shadow-lg transition-all duration-300 text-xs font-medium"
             >
-              <ArrowDown className="h-4 w-4 mr-1" />
-              Bottom
+              <ArrowDown className="h-3 w-3 mr-1" />
+              Jump to Bottom
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={scrollUp}
+              variant="outline"
+              size="sm"
+              className="bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 text-xs font-medium"
+            >
+              <ChevronUp className="h-3 w-3 mr-1" />
+              Scroll Up
+            </Button>
+            <Button
+              onClick={scrollDown}
+              variant="outline"
+              size="sm"
+              className="bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 text-xs font-medium"
+            >
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Scroll Down
             </Button>
           </div>
         </CardContent>
@@ -350,28 +390,48 @@ export default function Recommendations() {
   // Render filter section for occasions
   const renderOccasionFilters = () => (
     <div className="w-80 flex-shrink-0 space-y-4">
-      {/* Page Navigation Controls */}
-      <Card className="shadow-md border-0 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
+      {/* Enhanced Seamless Navigation Controls */}
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
         <CardContent className="p-4">
-          <h3 className="font-semibold text-gray-800 mb-3 text-center">📍 Quick Navigation</h3>
-          <div className="flex gap-2">
+          <h3 className="font-semibold text-gray-800 mb-3 text-center">📍 Seamless Navigation</h3>
+          <div className="grid grid-cols-2 gap-2 mb-3">
             <Button
               onClick={scrollToTop}
               variant="outline"
               size="sm"
-              className="flex-1 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-200"
+              className="bg-white/90 hover:bg-white hover:shadow-lg transition-all duration-300 text-xs font-medium"
             >
-              <ArrowUp className="h-4 w-4 mr-1" />
-              Top
+              <ArrowUp className="h-3 w-3 mr-1" />
+              Jump to Top
             </Button>
             <Button
               onClick={scrollToBottom}
               variant="outline"
               size="sm"
-              className="flex-1 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-200"
+              className="bg-white/90 hover:bg-white hover:shadow-lg transition-all duration-300 text-xs font-medium"
             >
-              <ArrowDown className="h-4 w-4 mr-1" />
-              Bottom
+              <ArrowDown className="h-3 w-3 mr-1" />
+              Jump to Bottom
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={scrollUp}
+              variant="outline"
+              size="sm"
+              className="bg-purple-50 hover:bg-purple-100 border-purple-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 text-xs font-medium"
+            >
+              <ChevronUp className="h-3 w-3 mr-1" />
+              Scroll Up
+            </Button>
+            <Button
+              onClick={scrollDown}
+              variant="outline"
+              size="sm"
+              className="bg-purple-50 hover:bg-purple-100 border-purple-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 text-xs font-medium"
+            >
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Scroll Down
             </Button>
           </div>
         </CardContent>
