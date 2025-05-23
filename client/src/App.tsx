@@ -7,6 +7,7 @@ import { RecipientsPage } from "./pages/RecipientsPage";
 import LearningDemoPage from "./pages/learning-demo";
 import DashboardPage from "./pages/dashboard";
 import RecommendationsPage from "./pages/recommendations";
+import HowItWorksPage from "./pages/how-it-works";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(true); // Set to true for development
@@ -291,6 +292,10 @@ function App() {
             
             <Route path="/recommendations">
               <RecommendationsPage />
+            </Route>
+            
+            <Route path="/how-it-works">
+              <HowItWorksPage />
             </Route>
             
             <Route path="/learning-demo">
@@ -664,7 +669,10 @@ function App() {
               >
                 Get Started
               </button>
-              <button className="rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50">
+              <button 
+                onClick={() => setLocation("/how-it-works")}
+                className="rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50"
+              >
                 Learn More
               </button>
             </div>
