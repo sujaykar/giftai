@@ -17,6 +17,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { hashPassword, comparePassword } from "./utils/password-utils";
 import { configurePassport } from "./config/passport";
+import { EmailService } from "./services/email-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
