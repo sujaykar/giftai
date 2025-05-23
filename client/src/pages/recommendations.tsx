@@ -178,10 +178,17 @@ export default function Recommendations() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">AI Gift Recommendations</h1>
+          <p className="text-lg text-gray-600">Click the feedback buttons to help the AI learn your preferences!</p>
+        </div>
+        
+        {/* Two Section Layout: Filters Left, Products Right */}
+        <div className="flex gap-8">
           
-          {/* Left Sidebar - Elegant Collapsible Filters */}
-          <div className="lg:w-80 flex-shrink-0">
+          {/* Left Section - Filters */}
+          <div className="w-80 flex-shrink-0">
             <Card className="sticky top-8 shadow-lg border-0 bg-white rounded-xl">
               <CardHeader className="pb-4 border-b border-gray-100">
                 <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
@@ -306,12 +313,8 @@ export default function Recommendations() {
             </Card>
           </div>
 
-          {/* Right Content - Product Recommendations */}
+          {/* Right Section - Products */}
           <div className="flex-1 min-w-0">
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 mb-3">AI Gift Recommendations</h1>
-              <p className="text-lg text-gray-600">Click the feedback buttons to help the AI learn your preferences and improve future suggestions!</p>
-            </div>
 
             {/* Active Filters Display */}
             {(filter.mood !== "all" || filter.priceRange !== "all" || filter.category !== "all") && (
