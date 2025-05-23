@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Heart, DollarSign, X, ThumbsUp } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -28,8 +28,7 @@ export default function Recommendations() {
     category: "all"
   });
 
-  // Track removed products for learning demo
-  const [removedProducts, setRemovedProducts] = useState(new Set<number>());
+
 
   // Collapsible filter states
   const [filtersOpen, setFiltersOpen] = useState({
@@ -197,23 +196,13 @@ export default function Recommendations() {
   const recommendations = mockRecommendations;
   const isLoading = false;
 
-  // Handle feedback actions
-  const handleFeedback = (productId: number, feedbackType: string) => {
-    if (feedbackType === 'too_expensive' || feedbackType === 'wrong_style') {
-      setRemovedProducts(prev => new Set([...Array.from(prev), productId]));
-    }
-    
-    // Here you would normally send feedback to your AI system
-    console.log(`User feedback: ${feedbackType} for product ${productId}`);
-  };
 
-  // Filter recommendations based on selected filters and removed products
+
+  // Filter recommendations based on selected filters
   const getFilteredRecommendations = (isRecipientTab: boolean) => {
     const currentFilter = isRecipientTab ? recipientFilter : occasionFilter;
     
     return recommendations.filter((rec: any) => {
-      // Don't show removed products
-      if (removedProducts.has(rec.product.id)) return false;
       
       let matchesPriceRange = true;
       if (currentFilter.priceRange !== "all") {
@@ -538,36 +527,12 @@ export default function Recommendations() {
                     </div>
                   </div>
 
-                  {/* AI Learning Feedback Buttons */}
+                  {/* View Product Button */}
                   <div className="space-y-3">
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => handleFeedback(rec.product.id, 'like')}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-green-600 border-green-300 hover:bg-green-50 transition-colors"
-                      >
-                        <ThumbsUp className="h-4 w-4 mr-2" />
-                        Like
-                      </Button>
-                      <Button
-                        onClick={() => handleFeedback(rec.product.id, 'too_expensive')}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-orange-600 border-orange-300 hover:bg-orange-50 transition-colors"
-                      >
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Too Expensive
-                      </Button>
-                    </div>
                     <Button
-                      onClick={() => handleFeedback(rec.product.id, 'wrong_style')}
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-red-600 border-red-300 hover:bg-red-50 transition-colors"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                     >
-                      <X className="h-4 w-4 mr-2" />
-                      Wrong Style
+                      View Product Details
                     </Button>
                   </div>
                 </CardContent>
@@ -584,17 +549,7 @@ export default function Recommendations() {
         </div>
       )}
 
-      {/* AI Learning Counter */}
-      {removedProducts.size > 0 && (
-        <div className="mt-10 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-          <p className="text-blue-800 font-bold text-lg mb-2">
-            🎯 AI Learning Progress: Removed {removedProducts.size} product{removedProducts.size !== 1 ? 's' : ''} based on your feedback!
-          </p>
-          <p className="text-blue-700">
-            The AI is analyzing your preferences and will provide more personalized recommendations in your next session.
-          </p>
-        </div>
-      )}
+
     </div>
   );
 
