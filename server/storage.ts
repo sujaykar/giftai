@@ -103,6 +103,18 @@ export interface IStorage {
       maxPrice?: number
     }
   ): Promise<(Recommendation & { product: Product })[]>;
+  
+  // User Feedback methods for reinforcement learning
+  createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
+  getUserFeedbackHistory(userId: number): Promise<UserFeedback[]>;
+  getFeedbackForProduct(productId: number): Promise<UserFeedback[]>;
+  getFeedbackByType(userId: number, feedbackType: string): Promise<UserFeedback[]>;
+  
+  // Product Classification methods
+  createProductClassification(classification: InsertProductClassification): Promise<ProductClassification>;
+  getProductClassification(productId: number): Promise<ProductClassification | undefined>;
+  updateProductClassification(productId: number, updates: Partial<ProductClassification>): Promise<ProductClassification | undefined>;
+  getProductsNeedingClassification(limit?: number): Promise<Product[]>;
 }
 
 export class MemStorage implements IStorage {
