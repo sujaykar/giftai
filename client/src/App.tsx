@@ -294,9 +294,7 @@ function App() {
               <RecommendationsPage />
             </Route>
             
-            <Route path="/how-it-works">
-              <HowItWorksPage />
-            </Route>
+
             
             <Route path="/learning-demo">
               <LearningDemoPage />
