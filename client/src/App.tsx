@@ -150,7 +150,7 @@ function App() {
                 
                 {/* Google Sign-In Button */}
                 <button
-                  onClick={handleLogin}
+                  onClick={() => window.location.href = '/api/auth/google'}
                   className="w-full bg-white border border-gray-300 rounded-md py-3 px-4 flex items-center justify-center gap-3 font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-4"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
