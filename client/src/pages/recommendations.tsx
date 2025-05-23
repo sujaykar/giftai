@@ -14,6 +14,7 @@ export default function Recommendations() {
   
   const [filter, setFilter] = useState({
     recipient: "all",
+    occasion: "all",
     priceRange: "all",
     status: "all",
     mood: "all",
@@ -34,11 +35,34 @@ export default function Recommendations() {
   // Temporary filter state for apply functionality
   const [tempFilter, setTempFilter] = useState({
     recipient: "all",
+    occasion: "all",
     priceRange: "all",
     status: "all",
     mood: "all",
     category: "all"
   });
+
+  // Mock recipients data
+  const mockRecipients = [
+    { id: 1, name: "Mom", relationship: "Mother" },
+    { id: 2, name: "Dad", relationship: "Father" },
+    { id: 3, name: "Sarah", relationship: "Sister" },
+    { id: 4, name: "Mike", relationship: "Brother" },
+    { id: 5, name: "Emma", relationship: "Best Friend" },
+    { id: 6, name: "Alex", relationship: "Colleague" }
+  ];
+
+  // Mock occasions data
+  const mockOccasions = [
+    { id: 1, name: "Christmas", type: "Holiday" },
+    { id: 2, name: "Birthday", type: "Personal" },
+    { id: 3, name: "Thanksgiving", type: "Holiday" },
+    { id: 4, name: "Valentine's Day", type: "Holiday" },
+    { id: 5, name: "Mother's Day", type: "Holiday" },
+    { id: 6, name: "Father's Day", type: "Holiday" },
+    { id: 7, name: "Anniversary", type: "Personal" },
+    { id: 8, name: "Graduation", type: "Milestone" }
+  ];
 
   // Apply filters function
   const applyFilters = () => {
@@ -60,6 +84,8 @@ export default function Recommendations() {
         description: "Handcrafted ceramic mug with unique glaze pattern"
       },
       mood: "cozy",
+      occasion: "Christmas",
+      recipientName: "Mom",
       recommendationScore: "85%"
     },
     {
@@ -75,6 +101,8 @@ export default function Recommendations() {
         description: "Premium silk scarf with elegant pattern"
       },
       mood: "elegant",
+      occasion: "Anniversary",
+      recipientName: "Sarah",
       recommendationScore: "78%"
     },
     {
@@ -90,6 +118,8 @@ export default function Recommendations() {
         description: "High-quality wireless earbuds with noise cancellation"
       },
       mood: "modern",
+      occasion: "Birthday",
+      recipientName: "Mike",
       recommendationScore: "92%"
     },
     {
@@ -105,6 +135,8 @@ export default function Recommendations() {
         description: "Handbound leather journal with aged paper"
       },
       mood: "thoughtful",
+      occasion: "Graduation",
+      recipientName: "Emma",
       recommendationScore: "88%"
     },
     {
@@ -120,6 +152,8 @@ export default function Recommendations() {
         description: "Advanced fitness tracking with heart rate monitoring"
       },
       mood: "active",
+      occasion: "Valentine's Day",
+      recipientName: "Alex",
       recommendationScore: "81%"
     },
     {
@@ -135,6 +169,8 @@ export default function Recommendations() {
         description: "Premium tea collection with bamboo gift box"
       },
       mood: "relaxing",
+      occasion: "Thanksgiving",
+      recipientName: "Dad",
       recommendationScore: "76%"
     }
   ];
@@ -199,6 +235,40 @@ export default function Recommendations() {
               
               <CardContent className="space-y-6 p-6">
                 
+                {/* Recipient Dropdown */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Select Recipient</label>
+                  <select
+                    value={tempFilter.recipient}
+                    onChange={(e) => setTempFilter({...tempFilter, recipient: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white"
+                  >
+                    <option value="all">All Recipients</option>
+                    {mockRecipients.map((recipient) => (
+                      <option key={recipient.id} value={recipient.id}>
+                        {recipient.name} ({recipient.relationship})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Occasion Dropdown */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">🎉 Select Occasion</label>
+                  <select
+                    value={tempFilter.occasion}
+                    onChange={(e) => setTempFilter({...tempFilter, occasion: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white"
+                  >
+                    <option value="all">All Occasions</option>
+                    {mockOccasions.map((occasion) => (
+                      <option key={occasion.id} value={occasion.name}>
+                        {occasion.name} ({occasion.type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Mood Filter */}
                 <Collapsible 
                   open={filtersOpen.mood} 
@@ -296,6 +366,7 @@ export default function Recommendations() {
                     onClick={() => {
                       const resetFilters = { 
                         recipient: "all", 
+                        occasion: "all",
                         priceRange: "all", 
                         status: "all", 
                         mood: "all", 
@@ -360,9 +431,23 @@ export default function Recommendations() {
                           <p className="text-gray-600 text-sm mb-4 line-clamp-2">{rec.product.description}</p>
                         </div>
                         
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex justify-between items-center mb-4">
                           <span className="text-3xl font-bold text-green-600">${rec.product.price}</span>
                           <Badge variant="outline" className="px-3 py-1">{rec.mood}</Badge>
+                        </div>
+
+                        {/* Occasion Display */}
+                        <div className="mb-4 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-semibold text-pink-800">Perfect for:</p>
+                              <p className="text-lg font-bold text-purple-700">{rec.occasion || "Any Occasion"}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-600">For:</p>
+                              <p className="font-semibold text-gray-800">{rec.recipientName || "Anyone"}</p>
+                            </div>
+                          </div>
                         </div>
 
                         {/* AI Learning Feedback Buttons */}
