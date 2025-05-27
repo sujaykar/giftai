@@ -94,6 +94,75 @@ export class EmailService {
     }
   }
 
+  static async sendVerificationCode(email: string, code: string): Promise<boolean> {
+    const emailContent = {
+      to: email,
+      from: process.env.FROM_EMAIL || 'noreply@giftai.com',
+      subject: 'Your GIFT AI Verification Code',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verify Your Email - GIFT AI</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <h1 style="color: #ec4899; font-size: 32px; margin: 0; font-weight: bold;">
+                ✨ GIFT AI
+              </h1>
+            </div>
+            
+            <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 16px;">Verify Your Email Address</h2>
+            
+            <p style="color: #6b7280; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+              Thank you for signing up for GIFT AI! To complete your registration, please use the verification code below:
+            </p>
+            
+            <div style="text-align: center; margin: 32px 0;">
+              <div style="background-color: #fdf2f8; border: 2px solid #ec4899; border-radius: 8px; padding: 20px; display: inline-block;">
+                <div style="color: #ec4899; font-size: 32px; font-weight: bold; font-family: monospace; letter-spacing: 4px;">
+                  ${code}
+                </div>
+              </div>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+              This verification code will expire in 15 minutes. If you didn't create an account with GIFT AI, you can safely ignore this email.
+            </p>
+            
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px;">
+              <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+                This email was sent by GIFT AI. If you have any questions, please contact our support team.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        GIFT AI - Email Verification
+        
+        Thank you for signing up for GIFT AI!
+        
+        Your verification code is: ${code}
+        
+        This code will expire in 15 minutes. If you didn't create an account with GIFT AI, you can safely ignore this email.
+      `
+    };
+
+    try {
+      await mailService.send(emailContent);
+      console.log(`Verification code email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error('SendGrid verification email error:', error);
+      return false;
+    }
+  }
+
   static generateVerificationToken(): string {
     return crypto.randomBytes(32).toString('hex');
   }

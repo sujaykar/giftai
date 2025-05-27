@@ -24,11 +24,11 @@ export const verificationService = {
       // Log the code for debugging
       console.log(`VERIFICATION CODE for ${email}: ${code}`);
       
-      // Use dynamic import for ESM instead of require
-      const emailServiceModule = await import('./email-service.js');
+      // Import the email service
+      const { EmailService } = await import('./email-service');
       
-      // Send actual email via SendGrid
-      return await emailServiceModule.emailService.sendVerificationEmail(email, code);
+      // Send actual email via SendGrid with verification code
+      return await EmailService.sendVerificationCode(email, code);
     } catch (error) {
       console.error('Error sending verification email:', error);
       return false;
