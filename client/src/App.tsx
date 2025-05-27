@@ -14,6 +14,13 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useLocation();
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: ''
+  });
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -36,7 +43,72 @@ function App() {
   }, []);
 
   const handleLogin = () => {
+    setIsSignUp(false);
     setShowLoginForm(true);
+  };
+
+  const handleSignUp = () => {
+    setIsSignUp(true);
+    setShowLoginForm(true);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (isSignUp) {
+        // Handle sign up
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          alert('Account created! Please check your email for verification.');
+          setShowLoginForm(false);
+          setFormData({ email: '', password: '', firstName: '', lastName: '' });
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Registration failed');
+        }
+      } else {
+        // Handle sign in
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          }),
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+          setShowLoginForm(false);
+          setLocation('/dashboard');
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Login failed');
+        }
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleLogout = async () => {
@@ -185,7 +257,9 @@ function App() {
           {showLoginForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Welcome to GIFT AI</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  {isSignUp ? 'Create Your Account' : 'Welcome Back'}
+                </h2>
                 
                 {/* Google Sign-In Button */}
                 <button
@@ -209,54 +283,93 @@ function App() {
                 </div>
 
                 {/* Email/Password Form */}
-                <div className="space-y-4">
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  {isSignUp && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          placeholder="Enter your first name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          placeholder="Enter your last name"
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
                       placeholder="Enter your email"
+                      required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <input
                       type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
                       placeholder="Enter your password"
+                      required
                     />
                   </div>
                   
-                  {/* Sign In / Sign Up Buttons */}
-                  <div className="space-y-3">
-                    <button
-                      onClick={handleLogin}
-                      className="w-full bg-pink-500 text-white rounded-md py-2 font-medium hover:bg-pink-600 transition-colors"
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      onClick={handleLogin}
-                      className="w-full border border-pink-500 text-pink-500 rounded-md py-2 font-medium hover:bg-pink-50 transition-colors"
-                    >
-                      Create New Account
-                    </button>
-                  </div>
-
-                  {/* Additional Options */}
-                  <div className="text-center space-y-2">
-                    <a href="#" className="text-sm text-pink-500 hover:text-pink-600">
-                      Forgot your password?
-                    </a>
-                  </div>
-
+                  {/* Submit Button */}
                   <button
-                    onClick={() => setShowLoginForm(false)}
-                    className="w-full border border-gray-300 text-gray-700 rounded-md py-2 font-medium hover:bg-gray-50 transition-colors"
+                    type="submit"
+                    className="w-full bg-pink-500 text-white rounded-md py-2 font-medium hover:bg-pink-600 transition-colors"
                   >
-                    Cancel
+                    {isSignUp ? 'Create Account' : 'Sign In'}
                   </button>
+                  
+                  {/* Switch between login and signup */}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setIsSignUp(!isSignUp)}
+                      className="text-sm text-pink-500 hover:text-pink-600"
+                    >
+                      {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Additional Options */}
+                <div className="text-center space-y-2 mt-4">
+                  <a href="#" className="text-sm text-pink-500 hover:text-pink-600">
+                    Forgot your password?
+                  </a>
                 </div>
+
+                <button
+                  onClick={() => setShowLoginForm(false)}
+                  className="w-full border border-gray-300 text-gray-700 rounded-md py-2 font-medium hover:bg-gray-50 transition-colors mt-4"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           )}
