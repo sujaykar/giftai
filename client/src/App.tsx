@@ -10,31 +10,70 @@ import RecommendationsPage from "./pages/recommendations";
 import HowItWorksPage from "./pages/how-it-works";
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(true); // Set to true for development
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [location, setLocation] = useLocation();
   const [showLoginForm, setShowLoginForm] = useState(false);
 
-  // Basic handlers
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/current-user', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        }
+      } catch (error) {
+        console.log('Not authenticated');
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
   const handleLogin = () => {
-    setLoggedIn(true);
-    setLocation("/dashboard");
+    setShowLoginForm(true);
   };
 
-  const handleLogout = () => {
-    setLoggedIn(false);
-    setShowLoginForm(false);
-    setLocation("/");
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setUser(null);
+      setShowLoginForm(false);
+      setLocation("/");
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Redirect to dashboard if logged in and at root
   useEffect(() => {
-    if (loggedIn && location === "/") {
+    if (user && location === "/") {
       setLocation("/dashboard");
     }
-  }, [loggedIn, location, setLocation]);
+  }, [user, location, setLocation]);
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Authentication state - logged in
-  if (loggedIn) {
+  if (user) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header onLogout={handleLogout} />
@@ -43,7 +82,7 @@ function App() {
           <Switch>
             <Route path="/dashboard">
               <div className="space-y-8">
-                <h1 className="text-3xl font-bold text-gray-900">Welcome, Alex!</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.firstName || 'User'}!</h1>
                 
                 {/* Dashboard summary cards */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
