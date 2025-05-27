@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import crypto from 'crypto';
+import { EmailService } from './email-service';
 
 export const verificationService = {
   /**
@@ -23,9 +24,6 @@ export const verificationService = {
     try {
       // Log the code for debugging
       console.log(`VERIFICATION CODE for ${email}: ${code}`);
-      
-      // Use the EmailService directly (already imported at top)
-      const { EmailService } = await import('./email-service');
       
       // Send actual email via SendGrid with verification code
       return await EmailService.sendVerificationCode(email, code);
