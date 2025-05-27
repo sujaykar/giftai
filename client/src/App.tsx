@@ -15,6 +15,9 @@ function App() {
   const [location, setLocation] = useLocation();
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -68,7 +71,10 @@ function App() {
         });
 
         if (response.ok) {
-          alert('Account created! Please check your email for verification.');
+          const result = await response.json();
+          // Show verification modal instead of closing
+          setVerificationEmail(formData.email);
+          setShowVerification(true);
           setShowLoginForm(false);
           setFormData({ email: '', password: '', firstName: '', lastName: '' });
         } else {
@@ -109,6 +115,39 @@ function App() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: verificationEmail,
+          verificationCode: verificationCode
+        }),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        alert('Email verified successfully! You can now sign in.');
+        setShowVerification(false);
+        setVerificationCode('');
+        setVerificationEmail('');
+        // Show login form
+        setIsSignUp(false);
+        setShowLoginForm(true);
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Verification failed');
+      }
+    } catch (error) {
+      alert('Verification failed. Please try again.');
+    }
   };
 
   const handleLogout = async () => {
@@ -370,6 +409,63 @@ function App() {
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Email Verification Modal */}
+          {showVerification && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Verify Your Email</h2>
+                
+                <p className="text-gray-600 mb-6">
+                  We've sent a verification code to <strong>{verificationEmail}</strong>. 
+                  Please enter the code below to complete your registration.
+                </p>
+
+                <form onSubmit={handleVerifyEmail} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Verification Code
+                    </label>
+                    <input
+                      type="text"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 text-center text-lg font-mono"
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-pink-500 text-white rounded-md py-2 font-medium hover:bg-pink-600 transition-colors"
+                  >
+                    Verify Email
+                  </button>
+                </form>
+
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => {
+                      setShowVerification(false);
+                      setVerificationCode('');
+                      setVerificationEmail('');
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <div className="text-center mt-2">
+                  <p className="text-xs text-gray-500">
+                    Didn't receive the code? Check your spam folder or try signing up again.
+                  </p>
+                </div>
               </div>
             </div>
           )}
