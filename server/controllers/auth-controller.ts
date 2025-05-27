@@ -17,8 +17,23 @@ export const authController = {
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(encryptData(email));
       
-      if (existingUser) {
+      if (existingUser && existingUser.isVerified) {
         return res.status(400).json({ message: 'Email already in use' });
+      }
+      
+      // If user exists but is not verified, allow resending verification
+      if (existingUser && !existingUser.isVerified) {
+        const verificationCode = verificationService.generateVerificationCode();
+        await storage.updateUser(existingUser.id, { verificationCode });
+        
+        // Send verification code via email
+        const emailSent = await verificationService.sendVerificationEmail(email, verificationCode);
+        
+        return res.status(201).json({
+          message: 'Verification code resent. Please check your email.',
+          requiresVerification: true,
+          userId: existingUser.id
+        });
       }
       
       // Hash password
@@ -43,9 +58,9 @@ export const authController = {
       
       const user = await storage.createUser(newUser);
       
-      // Send verification code via email
+      // Send verification code via email (use plain email, not encrypted)
       const emailSent = await verificationService.sendVerificationEmail(
-        decryptData(user.email),
+        email,
         verificationCode
       );
       
