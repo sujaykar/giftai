@@ -24,11 +24,11 @@ export const verificationService = {
       // Log the code for debugging
       console.log(`VERIFICATION CODE for ${email}: ${code}`);
       
-      // Import the email service
-      const { EmailService } = await import('./email-service');
+      // Import the email service directly
+      const emailService = await import('./email-service');
       
       // Send actual email via SendGrid with verification code
-      return await EmailService.sendVerificationCode(email, code);
+      return await emailService.EmailService.sendVerificationCode(email, code);
     } catch (error) {
       console.error('Error sending verification email:', error);
       return false;
