@@ -51,23 +51,21 @@ export const configurePassport = () => {
           // Try both encrypted and non-encrypted email lookup for compatibility
           let user;
           
-          // First try encrypted email (new accounts)
-          try {
-            const encryptedEmail = encryptData(email);
-            user = await storage.getUserByEmail(encryptedEmail);
-          } catch (encryptError) {
-            // If encryption fails, try direct email lookup
-            user = await storage.getUserByEmail(email);
-          }
+          // First try plain text email lookup
+          console.log('🔍 Step 1: Trying plain text email lookup...');
+          user = await storage.getUserByEmail(email);
+          console.log('🔍 Plain text result:', user ? 'Found user!' : 'No user found');
           
-          // If still no user found, try the other method
+          // If not found, try encrypted email lookup
           if (!user) {
             try {
-              user = await storage.getUserByEmail(email);
-            } catch (directError) {
-              // Try encrypted as fallback
+              console.log('🔍 Step 2: Trying encrypted email lookup...');
               const encryptedEmail = encryptData(email);
+              console.log('🔍 Encrypted email:', encryptedEmail);
               user = await storage.getUserByEmail(encryptedEmail);
+              console.log('🔍 Encrypted result:', user ? 'Found user!' : 'No user found');
+            } catch (encryptError) {
+              console.log('⚠️ Encryption failed:', encryptError.message);
             }
           }
 
