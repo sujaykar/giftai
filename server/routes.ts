@@ -120,6 +120,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error registering user' });
     }
   });
+
+  // Email verification endpoint
+  app.post("/api/auth/verify", async (req: Request, res: Response) => {
+    try {
+      const { email, verificationCode } = req.body;
+      
+      console.log('🔍 VERIFICATION ATTEMPT for:', email);
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      if (user.isVerified) {
+        return res.status(400).json({ message: 'Email already verified' });
+      }
+      
+      if (user.verificationCode !== verificationCode) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+      
+      // Update user as verified
+      await storage.updateUser(user.id, { 
+        isVerified: true, 
+        verificationCode: null 
+      });
+      
+      console.log('✅ EMAIL VERIFIED for:', email);
+      
+      res.json({ 
+        message: 'Email verified successfully! You can now sign in.',
+        verified: true 
+      });
+      
+    } catch (error) {
+      console.error('Verification error:', error);
+      res.status(500).json({ message: 'Verification failed' });
+    }
+  });
+
+  // Password reset request endpoint
+  app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      
+      console.log('🔐 PASSWORD RESET REQUEST for:', email);
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if email exists or not for security
+        return res.json({ message: 'If that email exists, you will receive a password reset link.' });
+      }
+      
+      // Generate reset token
+      const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+      
+      // Update user with reset token
+      await storage.updateUser(user.id, { 
+        resetToken, 
+        resetTokenExpires: resetExpires 
+      });
+      
+      // Send reset email
+      try {
+        const { EmailService } = await import('./services/email-service');
+        const emailSent = await EmailService.sendPasswordResetEmail({
+          email: email,
+          resetToken: resetToken,
+          name: user.firstName
+        });
+        
+        if (emailSent) {
+          console.log('✅ PASSWORD RESET EMAIL SENT to:', email);
+        } else {
+          console.log('⚠️ RESET EMAIL SENDING FAILED for:', email);
+        }
+      } catch (emailError) {
+        console.error('Reset email service error:', emailError);
+      }
+      
+      res.json({ message: 'If that email exists, you will receive a password reset link.' });
+      
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      res.status(500).json({ message: 'Failed to process password reset request' });
+    }
+  });
+
+  // Password reset endpoint
+  app.post("/api/auth/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { email, resetToken, newPassword } = req.body;
+      
+      console.log('🔐 PASSWORD RESET ATTEMPT for:', email);
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.resetToken || user.resetToken !== resetToken) {
+        return res.status(400).json({ message: 'Invalid reset token' });
+      }
+      
+      // Check if token has expired
+      if (user.resetTokenExpires && new Date() > user.resetTokenExpires) {
+        return res.status(400).json({ message: 'Reset token has expired' });
+      }
+      
+      // Hash new password
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password and clear reset token
+      await storage.updateUser(user.id, { 
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpires: null
+      });
+      
+      console.log('✅ PASSWORD RESET SUCCESSFUL for:', email);
+      
+      res.json({ message: 'Password reset successful! You can now sign in with your new password.' });
+      
+    } catch (error) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ message: 'Failed to reset password' });
+    }
+  });
   
   // EMERGENCY LOGIN ROUTE - Direct authentication bypass
   app.post("/api/auth/emergency-login", async (req, res) => {
