@@ -462,6 +462,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/occasions/:id", isAuthenticated, recipientController.deleteOccasion);
   app.get("/api/occasions/upcoming", isAuthenticated, recipientController.getUpcomingOccasions);
   
+  // Product routes
+  app.get("/api/products", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      const products = await storage.getProducts();
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).json({ message: 'Failed to fetch products' });
+    }
+  });
+
+  app.post("/api/products/upload-csv", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      
+      // Note: For CSV upload, you would typically use multer middleware
+      // For now, we'll create a simplified version that accepts JSON data
+      const products = req.body.products || [];
+      
+      let createdCount = 0;
+      for (const productData of products) {
+        await storage.createProduct({
+          name: productData.name,
+          description: productData.description,
+          price: parseFloat(productData.price),
+          category: productData.category,
+          url: productData.url,
+          imageUrl: productData.imageUrl,
+          tags: productData.tags ? productData.tags.split(',').map((tag: string) => tag.trim()) : [],
+          inStock: true
+        });
+        createdCount++;
+      }
+      
+      res.json({ 
+        message: 'Products uploaded successfully',
+        count: createdCount
+      });
+    } catch (error) {
+      console.error('Error uploading products:', error);
+      res.status(500).json({ message: 'Failed to upload products' });
+    }
+  });
+
   // Recommendation routes
   app.get("/api/recommendations", isAuthenticated, recommendationController.getRecommendations);
   app.get("/api/recipients/:id/recommendations", isAuthenticated, recommendationController.getRecommendationsByRecipient);
