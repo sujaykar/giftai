@@ -218,7 +218,7 @@ function App() {
           <Switch>
             <Route path="/dashboard">
               <div className="space-y-8">
-                <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.firstName || 'User'}!</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Welcome, {(user as any)?.firstName || 'User'}!</h1>
                 
                 {/* Dashboard summary cards */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -243,11 +243,17 @@ function App() {
             </Route>
             
             <Route path="/recommendations">
-              <RecommendationsPage />
+              <div className="space-y-8">
+                <h1 className="text-3xl font-bold text-gray-900">AI Recommendations</h1>
+                <p className="text-gray-600">Your personalized gift recommendations will appear here.</p>
+              </div>
             </Route>
             
             <Route path="/learning-demo">
-              <LearningDemoPage />
+              <div className="space-y-8">
+                <h1 className="text-3xl font-bold text-gray-900">Learning Demo</h1>
+                <p className="text-gray-600">AI learning demonstration coming soon.</p>
+              </div>
             </Route>
           </Switch>
         </div>
