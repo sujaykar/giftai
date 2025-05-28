@@ -1,34 +1,64 @@
-// Check what user emails exist in the system
+// Check all user emails to find karsujay@gmail.com account
 import { storage } from './server/storage.js';
 
-console.log('🔍 Checking registered user emails in your GIFT AI system...\n');
-
-try {
-  // Check for test emails
-  const testEmails = [
-    'karsujay@gmail.com',
-    'sujay_kar@yahoo.com',
-    'karsujay@karinfinity.com'
-  ];
+async function findUserAccount() {
+  console.log('🔍 Searching for karsujay@gmail.com account in the system...\n');
   
-  console.log('Testing these email addresses:');
-  
-  for (const email of testEmails) {
-    try {
-      const user = await storage.getUserByEmail(email);
-      if (user) {
-        console.log(`✅ ${email} - User exists (ID: ${user.id})`);
-      } else {
-        console.log(`❌ ${email} - No account found`);
+  try {
+    // Since we know password reset works, the account exists
+    // Let's check if it might be stored with a different format
+    
+    const testEmails = [
+      'karsujay@gmail.com',
+      'KARSUJAY@GMAIL.COM',
+      'karsujay@GMAIL.COM',
+      ' karsujay@gmail.com ',
+      'karsujay@gmail.com '.trim()
+    ];
+    
+    for (const testEmail of testEmails) {
+      console.log(`Testing email: "${testEmail}"`);
+      try {
+        const user = await storage.getUserByEmail(testEmail);
+        if (user) {
+          console.log('✅ FOUND USER!');
+          console.log('- Stored email:', `"${user.email}"`);
+          console.log('- User ID:', user.id);
+          console.log('- Verified:', user.isVerified);
+          console.log('- Has password:', !!user.password);
+          return;
+        }
+      } catch (e) {
+        console.log('  ❌ Not found');
       }
-    } catch (error) {
-      console.log(`❌ ${email} - Error checking: ${error.message}`);
     }
+    
+    // Try encrypted versions
+    console.log('\n🔐 Trying encrypted email formats...');
+    const { encryptData } = await import('./server/utils/auth.js');
+    
+    for (const testEmail of testEmails) {
+      try {
+        const encrypted = encryptData(testEmail);
+        console.log(`Testing encrypted: "${testEmail}" -> "${encrypted}"`);
+        const user = await storage.getUserByEmail(encrypted);
+        if (user) {
+          console.log('✅ FOUND USER WITH ENCRYPTED EMAIL!');
+          console.log('- Stored email:', `"${user.email}"`);
+          console.log('- User ID:', user.id);
+          return;
+        }
+      } catch (e) {
+        console.log('  ❌ Encrypted not found');
+      }
+    }
+    
+    console.log('\n❌ Account not found with any email format');
+    console.log('💡 This suggests a registration issue or the account needs to be recreated');
+    
+  } catch (error) {
+    console.error('Error during search:', error);
   }
-  
-  console.log('\n💡 Only emails with existing accounts will receive password reset emails.');
-  console.log('This is correct security behavior to prevent email enumeration attacks.');
-  
-} catch (error) {
-  console.error('Error:', error.message);
 }
+
+findUserAccount();
