@@ -53,27 +53,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Auth routes
-  // Simple working registration route - completely isolated
+  // Full registration route with email verification
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
       const { email, password, firstName, lastName } = req.body;
       
-      console.log('✅ REGISTRATION ATTEMPT for:', email);
+      console.log('✅ REGISTRATION ATTEMPT with verification for:', email);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser && existingUser.isVerified) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
       
       // Hash password
       const bcrypt = await import('bcrypt');
       const hashedPassword = await bcrypt.hash(password, 10);
       
-      // Simple success response
-      console.log('✅ USER REGISTERED:', email);
+      // Generate verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Create user with verification required
+      const newUser = await storage.createUser({
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        isVerified: false,
+        verificationCode,
+        role: 'user'
+      });
+      
+      // Send verification email
+      try {
+        const { EmailService } = await import('./services/email-service');
+        const emailSent = await EmailService.sendVerificationEmail({
+          email: email,
+          verificationToken: verificationCode,
+          name: firstName
+        });
+        
+        if (emailSent) {
+          console.log('✅ VERIFICATION EMAIL SENT to:', email);
+        } else {
+          console.log('⚠️ EMAIL SENDING FAILED for:', email);
+        }
+      } catch (emailError) {
+        console.error('Email service error:', emailError);
+      }
+      
+      console.log('✅ USER REGISTERED (verification required):', email);
       
       res.status(201).json({
-        message: 'Registration successful',
+        message: 'Registration successful! Please check your email for verification code.',
+        requiresVerification: true,
         user: {
-          id: 1,
-          email: email,
-          firstName: firstName,
-          lastName: lastName
+          id: newUser.id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName
         }
       });
       
