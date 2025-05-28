@@ -321,7 +321,7 @@ export const authController = {
       const { email, verificationCode } = req.body;
       
       if (!email || !verificationCode) {
-        return res.status(400).json({ message: 'Email and verification code are required' });
+        return res.status(400).json({ message: 'Verification code is required to verify your email' });
       }
       
       // Find user by email
