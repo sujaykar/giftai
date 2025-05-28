@@ -382,8 +382,35 @@ export const authController = {
         return res.status(400).json({ message: 'Email is required' });
       }
       
-      // Find user by email
-      const user = await storage.getUserByEmail(encryptData(email));
+      // Find user by email (try both encrypted and direct lookup for compatibility)
+      let user;
+      try {
+        // First try encrypted email
+        const encryptedEmail = encryptData(email);
+        user = await storage.getUserByEmail(encryptedEmail);
+      } catch (encryptError) {
+        // If encryption fails, try direct email lookup
+        try {
+          user = await storage.getUserByEmail(email);
+        } catch (directError) {
+          user = null;
+        }
+      }
+      
+      // If still no user found, try the other method
+      if (!user) {
+        try {
+          user = await storage.getUserByEmail(email);
+        } catch (directError) {
+          // Try encrypted as final fallback
+          try {
+            const encryptedEmail = encryptData(email);
+            user = await storage.getUserByEmail(encryptedEmail);
+          } catch (encryptError) {
+            user = null;
+          }
+        }
+      }
       
       if (!user) {
         // Don't reveal if user exists or not for security
