@@ -402,7 +402,7 @@ export const authController = {
       
       // Send reset email
       try {
-        const resetUrl = `https://giftai.com/reset-password?token=${resetToken}`;
+        const resetUrl = `https://gifstai.com/reset-password?token=${resetToken}`;
         await EmailService.sendPasswordResetEmail(email, resetUrl, decryptData(user.firstName));
         
         return res.json({ 
