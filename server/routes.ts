@@ -93,6 +93,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout", authController.logout);
   app.get("/api/auth/current-user", isAuthenticated, authController.getCurrentUser);
   app.post("/api/auth/verify", authController.verifyAccount);
+  app.post("/api/auth/forgot-password", authController.forgotPassword);
+  app.post("/api/auth/reset-password", authController.resetPassword);
   
   // Social Login Routes
   // Google

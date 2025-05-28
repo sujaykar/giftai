@@ -118,6 +118,34 @@ function App() {
     });
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email
+        }),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        alert('Password reset email sent! Check your inbox for reset instructions.');
+        setShowForgotPassword(false);
+        setFormData({...formData, email: ''});
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to send reset email');
+      }
+    } catch (error) {
+      alert('Failed to send reset email. Please try again.');
+    }
+  };
+
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -414,6 +442,54 @@ function App() {
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Forgot Password Modal */}
+          {showForgotPassword && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Reset Your Password</h2>
+                
+                <p className="text-gray-600 mb-6">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter your email address"
+                      required
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-pink-500 text-white rounded-md py-2 font-medium hover:bg-pink-600 transition-colors"
+                  >
+                    Send Reset Link
+                  </button>
+                </form>
+
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setFormData({...formData, email: ''});
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )}

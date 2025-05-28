@@ -368,5 +368,91 @@ export const authController = {
       console.error('Account verification error:', error);
       return res.status(500).json({ message: 'Error verifying account' });
     }
+  },
+
+  /**
+   * Send password reset email
+   */
+  forgotPassword: async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(encryptData(email));
+      
+      if (!user) {
+        // Don't reveal if user exists or not for security
+        return res.json({ message: 'If an account with that email exists, we\'ve sent a password reset link.' });
+      }
+      
+      // Generate reset token
+      const resetToken = verificationService.generateVerificationToken();
+      const resetExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      
+      // Save reset token to user
+      await storage.updateUser(user.id, {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetExpiry
+      });
+      
+      // Send reset email
+      try {
+        const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+        await EmailService.sendPasswordResetEmail(email, resetUrl, decryptData(user.firstName));
+        
+        return res.json({ 
+          message: 'Password reset email sent! Check your inbox for reset instructions.' 
+        });
+      } catch (emailError) {
+        console.error('Error sending reset email:', emailError);
+        return res.status(500).json({ message: 'Failed to send reset email' });
+      }
+      
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return res.status(500).json({ message: 'Error processing password reset request' });
+    }
+  },
+
+  /**
+   * Reset password with token
+   */
+  resetPassword: async (req: Request, res: Response) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: 'Reset token and new password are required' });
+      }
+      
+      // Find user by reset token
+      const user = await storage.getUserByResetToken(token);
+      
+      if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+        return res.status(400).json({ message: 'Invalid or expired reset token' });
+      }
+      
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update user password and clear reset token
+      await storage.updateUser(user.id, {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null
+      });
+      
+      return res.json({ 
+        message: 'Password reset successful! You can now log in with your new password.' 
+      });
+      
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return res.status(500).json({ message: 'Error resetting password' });
+    }
   }
 };
