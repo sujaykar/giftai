@@ -1,59 +1,57 @@
-// Debug the authentication issue step by step
+// Debug authentication issue for karsujay@gmail.com
 import { storage } from './server/storage.js';
-import { comparePassword } from './server/utils/auth.js';
-import { encryptData, decryptData } from './server/utils/encryption.js';
 
-async function debugAuthIssue() {
-  console.log('🔍 Debugging authentication for sujay_kar@yahoo.com...\n');
-  
-  const testEmail = 'sujay_kar@yahoo.com';
-  const testPassword = 'Sikandar123%';
+async function debugUserAccount() {
+  console.log('🔍 Debugging authentication issue for karsujay@gmail.com\n');
   
   try {
-    // Test 1: Check if user exists with encrypted email
-    console.log('1. Checking encrypted email lookup...');
-    const encryptedEmail = encryptData(testEmail);
-    let user = await storage.getUserByEmail(encryptedEmail);
+    // Check if user exists with plain email
+    console.log('1. Checking with plain email...');
+    const plainUser = await storage.getUserByEmail('karsujay@gmail.com');
+    console.log('Plain email result:', plainUser ? 'FOUND' : 'NOT FOUND');
     
-    if (user) {
-      console.log('✅ User found with encrypted email');
-      console.log('User ID:', user.id);
-      console.log('Encrypted email matches');
+    if (plainUser) {
+      console.log('✅ User found with plain email!');
+      console.log('User ID:', plainUser.id);
+      console.log('Email stored as:', plainUser.email);
+      console.log('Is verified:', plainUser.isVerified);
+      console.log('Has password:', !!plainUser.password);
       
       // Test password verification
-      console.log('\n2. Testing password verification...');
-      const isMatch = await comparePassword(testPassword, user.password);
-      console.log('Password match:', isMatch ? '✅ Yes' : '❌ No');
-      
-      if (!isMatch) {
-        console.log('❌ Password verification failed - this is the issue!');
-        console.log('Stored password hash:', user.password);
-      } else {
-        console.log('✅ Password verification successful');
+      if (plainUser.password) {
+        const bcrypt = await import('bcrypt');
+        const passwordMatch = await bcrypt.compare('Sikandar123%', plainUser.password);
+        console.log('Password matches:', passwordMatch);
       }
     } else {
-      console.log('❌ User not found with encrypted email');
+      console.log('❌ User not found with plain email');
       
-      // Test 2: Check direct email lookup
-      console.log('\n2. Checking direct email lookup...');
-      user = await storage.getUserByEmail(testEmail);
+      // Try to find user by any means
+      console.log('\n2. Searching all users for similar emails...');
+      // Since we can't easily iterate MemStorage, let's check if the issue is encryption
       
-      if (user) {
-        console.log('✅ User found with direct email');
-      } else {
-        console.log('❌ User not found with direct email either');
+      const { encryptData } = await import('./server/utils/auth.js');
+      try {
+        const encryptedEmail = encryptData('karsujay@gmail.com');
+        console.log('3. Checking with encrypted email...');
+        console.log('Encrypted email:', encryptedEmail);
+        
+        const encryptedUser = await storage.getUserByEmail(encryptedEmail);
+        console.log('Encrypted email result:', encryptedUser ? 'FOUND' : 'NOT FOUND');
+        
+        if (encryptedUser) {
+          console.log('✅ User found with encrypted email!');
+          console.log('User ID:', encryptedUser.id);
+          console.log('Email stored as:', encryptedUser.email);
+        }
+      } catch (encryptError) {
+        console.log('❌ Encryption test failed:', encryptError.message);
       }
     }
     
   } catch (error) {
-    console.error('Debug error:', error);
+    console.error('❌ Debug error:', error);
   }
 }
 
-// Run in a way that works with ES modules
-import('./server/storage.js').then(() => {
-  debugAuthIssue();
-}).catch(err => {
-  console.log('Module import error - the account exists but there\'s a technical issue');
-  console.log('Let\'s try resetting the password to fix this.');
-});
+debugUserAccount();

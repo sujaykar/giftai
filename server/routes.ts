@@ -54,31 +54,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes
   app.post("/api/auth/register", authController.register);
-  app.post("/api/auth/login", (req, res, next) => {
-    console.log('🔍 Login route hit with:', req.body);
-    passport.authenticate("local", (err, user, info) => {
-      console.log('🔍 Passport authenticate result:', { err: !!err, user: !!user, info });
+  app.post("/api/auth/login", async (req, res) => {
+    console.log('🚨 EMERGENCY LOGIN FIX - Direct authentication');
+    
+    try {
+      const { email, password } = req.body;
       
-      if (err) {
-        console.error('❌ Authentication error:', err);
-        return res.status(500).json({ message: 'Authentication error' });
+      if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password required' });
+      }
+      
+      console.log('🔍 DIRECT AUTH: Looking for user:', email);
+      
+      // Direct user lookup with multiple methods
+      let user = null;
+      
+      // Method 1: Direct email lookup
+      try {
+        user = await storage.getUserByEmail(email);
+        if (user) console.log('✅ FOUND: Direct email method');
+      } catch (e) {
+        console.log('❌ Direct lookup failed');
+      }
+      
+      // Method 2: Try encrypted email if direct fails
+      if (!user) {
+        try {
+          const { encryptData } = await import('./utils/auth.js');
+          const encryptedEmail = encryptData(email);
+          user = await storage.getUserByEmail(encryptedEmail);
+          if (user) console.log('✅ FOUND: Encrypted email method');
+        } catch (e) {
+          console.log('❌ Encrypted lookup failed');
+        }
       }
       
       if (!user) {
-        console.log('❌ Authentication failed:', info?.message || 'Invalid credentials');
-        return res.status(401).json({ message: info?.message || 'Invalid email or password' });
+        console.log('❌ NO USER FOUND for:', email);
+        return res.status(401).json({ message: 'Invalid email or password' });
       }
       
-      req.logIn(user, (loginErr) => {
-        if (loginErr) {
-          console.error('❌ Login error:', loginErr);
-          return res.status(500).json({ message: 'Login error' });
+      console.log('✅ USER FOUND - ID:', user.id, 'Email stored as:', user.email);
+      
+      // Direct password verification
+      const bcrypt = await import('bcrypt');
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      
+      console.log('🔍 Password verification:', isValidPassword);
+      
+      if (!isValidPassword) {
+        console.log('❌ INVALID PASSWORD for user:', user.id);
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+      
+      // Manual session creation (bypassing passport)
+      req.session.userId = user.id;
+      req.session.user = user;
+      
+      console.log('✅ EMERGENCY LOGIN SUCCESS for user:', user.id);
+      
+      // Return success response
+      res.json({
+        message: 'Login successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isVerified: user.isVerified
         }
-        
-        console.log('✅ Login successful for user:', user.id);
-        return authController.login(req, res);
       });
-    })(req, res, next);
+      
+    } catch (error) {
+      console.error('❌ EMERGENCY LOGIN ERROR:', error);
+      res.status(500).json({ message: 'Login failed' });
+    }
   });
   app.post("/api/auth/logout", authController.logout);
   app.get("/api/auth/current-user", isAuthenticated, authController.getCurrentUser);
