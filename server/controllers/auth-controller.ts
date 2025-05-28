@@ -318,28 +318,28 @@ export const authController = {
    */
   verifyAccount: async (req: Request, res: Response) => {
     try {
-      const { userId, verificationCode } = req.body;
+      const { email, verificationCode } = req.body;
       
-      if (!userId || !verificationCode) {
-        return res.status(400).json({ message: 'User ID and verification code are required' });
+      if (!email || !verificationCode) {
+        return res.status(400).json({ message: 'Email and verification code are required' });
       }
       
-      // Verify the code
-      const isValid = await verificationService.verifyCode(userId, verificationCode);
-      
-      if (!isValid) {
-        return res.status(400).json({ message: 'Invalid verification code' });
-      }
-      
-      // Get user to send welcome email
-      const user = await storage.getUser(userId);
+      // Find user by email
+      const user = await storage.getUserByEmail(encryptData(email));
       
       if (!user) {
         return res.status(400).json({ message: 'User not found' });
       }
       
+      // Verify the code
+      const isValid = await verificationService.verifyCode(user.id, verificationCode);
+      
+      if (!isValid) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+      
       // Update user to mark as verified and clear verification data
-      await storage.updateUser(userId, {
+      await storage.updateUser(user.id, {
         isVerified: true,
         verificationCode: null,
         verificationToken: null
