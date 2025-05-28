@@ -1,42 +1,24 @@
-// Emergency fix for login authentication issue
-import axios from 'axios';
+// Fix the login issue for karsujay@karinfinity.com
+import bcrypt from 'bcrypt';
 
-async function testAndFixLogin() {
-  console.log('🚨 EMERGENCY LOGIN FIX for GIFT AI Platform\n');
-  
-  try {
-    // Test if we can create a temporary working login
-    console.log('Testing direct authentication bypass...');
-    
-    // Create a simple test endpoint to verify user exists
-    const testResponse = await axios.post('http://localhost:5000/api/auth/forgot-password', {
-      email: 'karsujay@gmail.com'
-    }, {
-      headers: { 'Content-Type': 'application/json' },
-      validateStatus: () => true
-    });
-    
-    console.log('Password reset test status:', testResponse.status);
-    
-    if (testResponse.status === 200) {
-      console.log('✅ User account EXISTS and is accessible via forgot password');
-      console.log('✅ This confirms the account is properly stored');
-      console.log('\n🔧 The issue is in the LocalStrategy password verification');
-      
-      console.log('\n💡 IMMEDIATE SOLUTION:');
-      console.log('1. Use the password reset email you received');
-      console.log('2. Set a new password: NewPassword123!');
-      console.log('3. This will bypass the current authentication bug');
-      console.log('\n✅ This gets you logged into GIFT AI immediately while I fix the core issue');
-      
-    } else {
-      console.log('❌ Account access issue detected');
-      console.log('Response:', testResponse.data);
-    }
-    
-  } catch (error) {
-    console.log('❌ Test failed:', error.message);
-  }
-}
+console.log('🔧 Fixing Login Issue...\n');
 
-testAndFixLogin();
+// The issue appears to be in password verification
+// Let's test what might be happening during registration vs login
+
+const testPassword = 'your_actual_password'; // Replace with the actual password you used
+console.log('Testing password:', testPassword);
+
+// Test current bcrypt process
+const hashedPassword = await bcrypt.hash(testPassword, 10);
+console.log('Newly hashed password:', hashedPassword);
+
+const verification = await bcrypt.compare(testPassword, hashedPassword);
+console.log('Verification result:', verification ? '✅ SUCCESS' : '❌ FAILED');
+
+console.log('\n💡 The issue might be:');
+console.log('1. Password stored during registration might be corrupted');
+console.log('2. There might be encoding issues with the password');
+console.log('3. The password field might not be storing correctly');
+
+console.log('\n🎯 Solution: We can add a password reset option for your account');

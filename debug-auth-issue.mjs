@@ -1,57 +1,33 @@
-// Debug authentication issue for karsujay@gmail.com
-import { storage } from './server/storage.js';
+// Debug the specific authentication issue for karsujay@karinfinity.com
+import bcrypt from 'bcrypt';
 
-async function debugUserAccount() {
-  console.log('🔍 Debugging authentication issue for karsujay@gmail.com\n');
-  
-  try {
-    // Check if user exists with plain email
-    console.log('1. Checking with plain email...');
-    const plainUser = await storage.getUserByEmail('karsujay@gmail.com');
-    console.log('Plain email result:', plainUser ? 'FOUND' : 'NOT FOUND');
-    
-    if (plainUser) {
-      console.log('✅ User found with plain email!');
-      console.log('User ID:', plainUser.id);
-      console.log('Email stored as:', plainUser.email);
-      console.log('Is verified:', plainUser.isVerified);
-      console.log('Has password:', !!plainUser.password);
-      
-      // Test password verification
-      if (plainUser.password) {
-        const bcrypt = await import('bcrypt');
-        const passwordMatch = await bcrypt.compare('Sikandar123%', plainUser.password);
-        console.log('Password matches:', passwordMatch);
-      }
-    } else {
-      console.log('❌ User not found with plain email');
-      
-      // Try to find user by any means
-      console.log('\n2. Searching all users for similar emails...');
-      // Since we can't easily iterate MemStorage, let's check if the issue is encryption
-      
-      const { encryptData } = await import('./server/utils/auth.js');
-      try {
-        const encryptedEmail = encryptData('karsujay@gmail.com');
-        console.log('3. Checking with encrypted email...');
-        console.log('Encrypted email:', encryptedEmail);
-        
-        const encryptedUser = await storage.getUserByEmail(encryptedEmail);
-        console.log('Encrypted email result:', encryptedUser ? 'FOUND' : 'NOT FOUND');
-        
-        if (encryptedUser) {
-          console.log('✅ User found with encrypted email!');
-          console.log('User ID:', encryptedUser.id);
-          console.log('Email stored as:', encryptedUser.email);
-        }
-      } catch (encryptError) {
-        console.log('❌ Encryption test failed:', encryptError.message);
-      }
-    }
-    
-  } catch (error) {
-    console.error('❌ Debug error:', error);
-  }
+console.log('🔍 Debugging Authentication Issue for karsujay@karinfinity.com\n');
+
+// Test the exact scenario from the logs
+const testEmail = 'karsujay@karinfinity.com';
+const testPassword = 'password123'; // Assuming this was the password used
+
+console.log('Testing password hashing and verification process:');
+console.log('Email:', testEmail);
+console.log('Password to test:', testPassword);
+
+// Simulate the registration process - hash the password
+console.log('\n1️⃣ Registration Process:');
+const hashedPassword = await bcrypt.hash(testPassword, 10);
+console.log('Hashed password during registration:', hashedPassword);
+
+// Simulate the login process - verify the password
+console.log('\n2️⃣ Login Process:');
+const isPasswordValid = await bcrypt.compare(testPassword, hashedPassword);
+console.log('Password verification result:', isPasswordValid ? '✅ VALID' : '❌ INVALID');
+
+// Test with different potential passwords
+const commonPasswords = ['password', 'password123', 'Password123', 'test123', '123456'];
+
+console.log('\n3️⃣ Testing Common Passwords:');
+for (const pwd of commonPasswords) {
+    const result = await bcrypt.compare(pwd, hashedPassword);
+    console.log(`Password "${pwd}":`, result ? '✅ MATCH' : '❌ NO MATCH');
 }
 
-debugUserAccount();
+console.log('\n🎯 Debug Complete - Check if any password matches!');
