@@ -69,17 +69,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct user lookup with multiple methods
       let user = null;
       
-      // CRITICAL FIX: Direct email lookup with comprehensive debugging
-      console.log('🔍 Attempting direct email lookup for:', email);
+      // CRITICAL FIX: Comprehensive user lookup system
+      console.log('🔍 CRITICAL: Starting user lookup for:', email);
       
       try {
         user = await storage.getUserByEmail(email);
-        console.log('🔍 Direct lookup result:', user ? 'SUCCESS' : 'NULL');
+        console.log('🔍 STORAGE RESULT:', user ? `FOUND USER ${user.id}` : 'NO USER FOUND');
+        
         if (user) {
-          console.log('✅ FOUND USER - ID:', user.id, 'Email:', user.email);
+          console.log('✅ USER DETAILS:');
+          console.log('  - ID:', user.id);
+          console.log('  - Email:', user.email);
+          console.log('  - Verified:', user.isVerified);
+          console.log('  - Has Password:', !!user.password);
+        } else {
+          // EMERGENCY: Manual search through all users
+          console.log('🚨 EMERGENCY: Searching all users manually...');
+          // Since getUserByEmail has a fallback, let's force a manual check
+          const allUsers = Array.from((storage as any).users?.values() || []);
+          console.log('🔍 Total users in storage:', allUsers.length);
+          
+          for (const testUser of allUsers) {
+            if (testUser.email === email) {
+              console.log('✅ FOUND USER IN MANUAL SEARCH:', testUser.id);
+              user = testUser;
+              break;
+            }
+          }
+          
+          if (!user) {
+            console.log('🔍 Checking for similar emails...');
+            for (const testUser of allUsers) {
+              console.log('  - Stored email:', testUser.email);
+              if (testUser.email && testUser.email.toLowerCase() === email.toLowerCase()) {
+                console.log('✅ FOUND USER WITH CASE DIFFERENCE:', testUser.id);
+                user = testUser;
+                break;
+              }
+            }
+          }
         }
       } catch (error) {
-        console.log('❌ Direct lookup error:', error);
+        console.log('❌ CRITICAL ERROR in user lookup:', error);
       }
       
       // Method 3: Case variations
