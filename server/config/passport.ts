@@ -47,6 +47,7 @@ export const configurePassport = () => {
       },
       async (email, password, done) => {
         try {
+          console.log('🔍 LocalStrategy called with email:', email);
           // Try both encrypted and non-encrypted email lookup for compatibility
           let user;
           
