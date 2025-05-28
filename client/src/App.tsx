@@ -4,6 +4,7 @@ import { Route, Switch, useLocation } from "wouter";
 import { Header } from "./components/Header";
 import { RecipientQuiz } from "./components/RecipientQuiz";
 import { RecipientsPage } from "./pages/RecipientsPage";
+import HowItWorks from "./pages/how-it-works.tsx";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -266,12 +267,7 @@ function App() {
     <Switch>
       {/* Standalone How It Works page for new user onboarding */}
       <Route path="/how-it-works">
-        <div className="min-h-screen bg-gray-50 py-12">
-          <div className="container mx-auto px-6 text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-8">How GIFT AI Works</h1>
-            <p className="text-xl text-gray-600">Coming soon - AI-powered gift recommendations!</p>
-          </div>
-        </div>
+        <HowItWorks />
       </Route>
       
       {/* Landing page for everyone else */}
