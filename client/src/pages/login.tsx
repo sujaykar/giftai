@@ -36,7 +36,7 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/auth/login", data);
+      const response = await apiRequest("POST", "/api/auth/emergency-login", data);
       const userData = await response.json();
       
       login(userData);

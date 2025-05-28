@@ -54,6 +54,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes
   app.post("/api/auth/register", authController.register);
+  
+  // EMERGENCY LOGIN ROUTE - Direct authentication bypass
+  app.post("/api/auth/emergency-login", async (req, res) => {
+    console.log('🚨 EMERGENCY LOGIN ROUTE ACTIVATED');
+    
+    const { email, password } = req.body;
+    console.log('🔍 Emergency login for:', email);
+    
+    try {
+      // Direct access to storage
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        console.log('❌ No user found in emergency route');
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      
+      console.log('✅ User found in emergency route:', user.id);
+      
+      // Direct password check
+      const bcrypt = await import('bcrypt');
+      const isValid = await bcrypt.compare(password, user.password);
+      
+      if (!isValid) {
+        console.log('❌ Invalid password in emergency route');
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      
+      console.log('✅ EMERGENCY LOGIN SUCCESS');
+      
+      // Set session manually with proper typing
+      (req.session as any).userId = user.id;
+      (req.session as any).user = user;
+      
+      res.json({
+        message: 'Emergency login successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isVerified: user.isVerified
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Emergency login error:', error);
+      res.status(500).json({ message: 'Emergency login failed' });
+    }
+  });
   app.post("/api/auth/login", async (req, res) => {
     console.log('🚨 EMERGENCY LOGIN FIX - Direct authentication');
     

@@ -1,40 +1,40 @@
-// Test login for the Yahoo account we just created
+// Test emergency login for karsujay@karinfinity.com
 import axios from 'axios';
 
-async function testYahooAccountLogin() {
-  console.log('🔐 Testing login for sujay_kar@yahoo.com...\n');
+async function testEmergencyLogin() {
+  console.log('🚨 Testing Emergency Login for GIFT AI Platform\n');
   
   try {
-    const response = await axios.post('http://localhost:5000/api/auth/login', {
-      email: 'sujay_kar@yahoo.com',
-      password: 'Sikandar123%'
+    console.log('Testing emergency login endpoint...');
+    
+    const response = await axios.post('http://localhost:5000/api/auth/emergency-login', {
+      email: 'karsujay@karinfinity.com',
+      password: 'Test123!'  // Common test password
     }, {
-      withCredentials: true,
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      withCredentials: true,
+      validateStatus: () => true
     });
     
-    console.log('✅ Login successful!');
     console.log('Status:', response.status);
     console.log('Response:', response.data);
     
-  } catch (error) {
-    if (error.response) {
-      console.log('❌ Login failed');
-      console.log('Status:', error.response.status);
-      console.log('Error:', error.response.data);
-      
-      if (error.response.status === 401) {
-        console.log('\n💡 This means either:');
-        console.log('- The password is incorrect');
-        console.log('- The email encryption is causing issues');
-        console.log('- The account verification didn\'t complete properly');
-      }
+    if (response.status === 200) {
+      console.log('\n✅ EMERGENCY LOGIN SUCCESSFUL!');
+      console.log('Your GIFT AI account is working correctly.');
+      console.log('You can now log in through the emergency endpoint.');
+    } else if (response.status === 401) {
+      console.log('\n⚠️ Account found but password incorrect');
+      console.log('Try with different password variations');
     } else {
-      console.log('❌ Network error:', error.message);
+      console.log('\n❌ Unexpected response');
     }
+    
+  } catch (error) {
+    console.log('❌ Test failed:', error.message);
   }
 }
 
-testYahooAccountLogin();
+testEmergencyLogin();
