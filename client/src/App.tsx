@@ -398,9 +398,13 @@ function App() {
 
                 {/* Additional Options */}
                 <div className="text-center space-y-2 mt-4">
-                  <a href="#" className="text-sm text-pink-500 hover:text-pink-600">
+                  <button 
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-pink-500 hover:text-pink-600"
+                  >
                     Forgot your password?
-                  </a>
+                  </button>
                 </div>
 
                 <button
