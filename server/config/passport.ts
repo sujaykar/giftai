@@ -74,10 +74,16 @@ export const configurePassport = () => {
             return done(null, false, { message: 'Invalid email or password' });
           }
 
-          // Verify password
+          // Verify password with debugging
+          console.log('🔍 Login attempt for:', email);
+          console.log('🔍 User found with ID:', user.id);
+          console.log('🔍 Stored password hash exists:', !!user.password);
+          
           const isMatch = await comparePassword(password, user.password);
+          console.log('🔍 Password verification result:', isMatch);
           
           if (!isMatch) {
+            console.log('❌ Password verification failed for:', email);
             return done(null, false, { message: 'Invalid email or password' });
           }
 
