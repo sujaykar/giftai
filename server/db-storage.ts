@@ -9,7 +9,7 @@ import {
   type PurchaseHistory, type InsertPurchaseHistory, type UserSimilarity, type InsertUserSimilarity,
   type UserFeedback, type InsertUserFeedback, type ProductClassification, type InsertProductClassification
 } from "@shared/schema";
-import { db } from "./db";
+// import { db } from "./db"; // Disabled for memory storage testing
 import { eq } from "drizzle-orm";
 import { IStorage } from "./storage";
 
