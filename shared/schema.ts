@@ -48,6 +48,7 @@ export const recipients = pgTable("recipients", {
   age: integer("age"),
   gender: varchar("gender", { length: 20 }),
   birthday: timestamp("birthday"),
+  photoUrl: text("photo_url"), // Optional photo of the recipient
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()

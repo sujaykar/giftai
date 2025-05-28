@@ -18,6 +18,7 @@ const recipientSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   relationship: z.string().min(1, "Please select a relationship"),
   ageRange: z.string().min(1, "Please select an age range"),
+  photoUrl: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -36,6 +37,7 @@ export default function AddRecipient() {
       name: "",
       relationship: "",
       ageRange: "",
+      photoUrl: "",
       notes: "",
     },
   });
@@ -204,6 +206,27 @@ export default function AddRecipient() {
                             <SelectItem value="65+">Senior (65+)</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="photoUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Photo (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="url"
+                            placeholder="Enter photo URL (e.g., from Google Photos, Instagram, etc.)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Add a photo URL to help personalize gift recommendations. This is completely optional.
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
