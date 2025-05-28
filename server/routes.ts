@@ -179,18 +179,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update user with reset token
       await storage.updateUser(user.id, { 
-        resetToken, 
-        resetTokenExpires: resetExpires 
+        resetPasswordToken: resetToken, 
+        resetPasswordExpires: resetExpires 
       });
       
       // Send reset email
       try {
         const { EmailService } = await import('./services/email-service');
-        const emailSent = await EmailService.sendPasswordResetEmail({
-          email: email,
-          resetToken: resetToken,
-          name: user.firstName
-        });
+        const resetUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+        const emailSent = await EmailService.sendPasswordResetEmail(email, resetUrl, user.firstName);
         
         if (emailSent) {
           console.log('✅ PASSWORD RESET EMAIL SENT to:', email);
@@ -217,12 +214,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔐 PASSWORD RESET ATTEMPT for:', email);
       
       const user = await storage.getUserByEmail(email);
-      if (!user || !user.resetToken || user.resetToken !== resetToken) {
+      if (!user || !user.resetPasswordToken || user.resetPasswordToken !== resetToken) {
         return res.status(400).json({ message: 'Invalid reset token' });
       }
       
       // Check if token has expired
-      if (user.resetTokenExpires && new Date() > user.resetTokenExpires) {
+      if (user.resetPasswordExpires && new Date() > user.resetPasswordExpires) {
         return res.status(400).json({ message: 'Reset token has expired' });
       }
       
@@ -233,8 +230,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update password and clear reset token
       await storage.updateUser(user.id, { 
         password: hashedPassword,
-        resetToken: null,
-        resetTokenExpires: null
+        resetPasswordToken: null,
+        resetPasswordExpires: null
       });
       
       console.log('✅ PASSWORD RESET SUCCESSFUL for:', email);

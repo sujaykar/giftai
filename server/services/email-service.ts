@@ -14,6 +14,12 @@ interface EmailVerificationData {
   name?: string;
 }
 
+interface PasswordResetData {
+  email: string;
+  resetToken: string;
+  name?: string;
+}
+
 export class EmailService {
   static async sendVerificationEmail(data: EmailVerificationData): Promise<boolean> {
     const verificationUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/api/auth/verify-email?token=${data.verificationToken}&email=${encodeURIComponent(data.email)}`;
