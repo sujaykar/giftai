@@ -69,23 +69,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct user lookup with multiple methods
       let user = null;
       
-      // Method 1: Direct email lookup
+      // CRITICAL FIX: Direct email lookup with comprehensive debugging
+      console.log('🔍 Attempting direct email lookup for:', email);
+      
       try {
         user = await storage.getUserByEmail(email);
-        if (user) console.log('✅ FOUND: Direct email method');
-      } catch (e) {
-        console.log('❌ Direct lookup failed');
+        console.log('🔍 Direct lookup result:', user ? 'SUCCESS' : 'NULL');
+        if (user) {
+          console.log('✅ FOUND USER - ID:', user.id, 'Email:', user.email);
+        }
+      } catch (error) {
+        console.log('❌ Direct lookup error:', error);
       }
       
-      // Method 2: Try encrypted email if direct fails
+      // Method 3: Case variations
       if (!user) {
-        try {
-          const { encryptData } = await import('./utils/auth.js');
-          const encryptedEmail = encryptData(email);
-          user = await storage.getUserByEmail(encryptedEmail);
-          if (user) console.log('✅ FOUND: Encrypted email method');
-        } catch (e) {
-          console.log('❌ Encrypted lookup failed');
+        const emailVariations = [
+          email.toLowerCase(),
+          email.toUpperCase(),
+          email.trim(),
+          email.trim().toLowerCase()
+        ];
+        
+        for (const variation of emailVariations) {
+          try {
+            user = await storage.getUserByEmail(variation);
+            if (user) {
+              console.log('✅ FOUND: Email variation method -', variation);
+              break;
+            }
+          } catch (e) {
+            // Continue trying
+          }
         }
       }
       
