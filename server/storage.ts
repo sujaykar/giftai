@@ -733,4 +733,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use PostgreSQL database for persistent storage to fix authentication issues
+import { DatabaseStorage } from "./db-storage";
+
+export const storage = new DatabaseStorage();
