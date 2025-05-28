@@ -42,42 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure passport strategies
   configurePassport();
 
-  // Configure Passport
-  passport.use(
-    new LocalStrategy(
-      { usernameField: "email" },
-      async (email, password, done) => {
-        try {
-          const user = await storage.getUserByEmail(email);
-          if (!user) {
-            return done(null, false, { message: "Incorrect email." });
-          }
-          
-          const isMatch = await comparePassword(password, user.password);
-          if (!isMatch) {
-            return done(null, false, { message: "Incorrect password." });
-          }
-          
-          return done(null, user);
-        } catch (err) {
-          return done(err);
-        }
-      }
-    )
-  );
-
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (err) {
-      done(err);
-    }
-  });
+  // Passport configuration is handled in configurePassport()
 
   // Middleware to check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: any) => {
