@@ -29,9 +29,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     session({
       cookie: { 
         maxAge: 86400000, // 24 hours
-        httpOnly: true,
+        httpOnly: false, // Allow client-side access for debugging
         secure: false, // Set to true in production with HTTPS
-        sameSite: 'lax'
+        sameSite: false // More permissive for development
       },
       store: new MemoryStoreSession({
         checkPeriod: 86400000, // prune expired entries every 24h
@@ -39,7 +39,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       resave: true,
       saveUninitialized: true,
       secret: process.env.SESSION_SECRET || "gift-ai-secret",
-      name: 'giftai.sid'
+      name: 'connect.sid',
+      rolling: true
     })
   );
 
@@ -54,10 +55,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: any) => {
+    console.log('Auth check - Session ID:', req.sessionID);
+    console.log('Auth check - Session data:', req.session);
+    console.log('Auth check - Is authenticated:', req.isAuthenticated());
+    console.log('Auth check - Session userId:', req.session?.userId);
+    
     // Check both passport authentication and manual session
     if (req.isAuthenticated() || req.session?.userId) {
+      console.log('Authentication successful');
       return next();
     }
+    console.log('Authentication failed');
     return res.status(401).json({ message: "Unauthorized" });
   };
 
