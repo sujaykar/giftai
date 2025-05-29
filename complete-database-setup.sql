@@ -218,7 +218,7 @@ SELECT
     r.id,
     o.name,
     o.occasion_type,
-    o.date,
+    o.date::DATE,
     o.budget_min,
     o.budget_max,
     o.priority,
