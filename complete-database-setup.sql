@@ -136,8 +136,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);
 -- Insert demo user (password: Demo2024!)
 INSERT INTO users (uuid, email, password, first_name, last_name, is_verified, created_at, updated_at)
 VALUES 
-('550e8400-e29b-41d4-a716-446655440000', 'demo@giftai.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q2', 'Demo', 'User', true, NOW(), NOW())
-ON CONFLICT (email) DO NOTHING;
+('550e8400-e29b-41d4-a716-446655440000', 'demo@giftai.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q2', 'Demo', 'User', true, NOW(), NOW());
 
 -- Insert test users (password: TestUser2024!)
 INSERT INTO users (uuid, email, password, first_name, last_name, is_verified, created_at, updated_at)
@@ -151,8 +150,7 @@ VALUES
 ('550e8400-e29b-41d4-a716-446655440007', 'grace.anderson@example.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q3', 'Grace', 'Anderson', true, NOW(), NOW()),
 ('550e8400-e29b-41d4-a716-446655440008', 'henry.thomas@example.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q3', 'Henry', 'Thomas', true, NOW(), NOW()),
 ('550e8400-e29b-41d4-a716-446655440009', 'iris.jackson@example.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q3', 'Iris', 'Jackson', true, NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440010', 'jack.white@example.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q3', 'Jack', 'White', true, NOW(), NOW())
-ON CONFLICT (email) DO NOTHING;
+('550e8400-e29b-41d4-a716-446655440010', 'jack.white@example.com', '$2b$10$rKJ8mJZoT7qL5nN8WQxhGuQCJU1xY2vL8fH3kR9sP6tA4mE7cX9Q3', 'Jack', 'White', true, NOW(), NOW());
 
 -- Insert sample products
 INSERT INTO products (uuid, name, description, price, category, tags, image_url, source_url, created_at, updated_at)
@@ -169,7 +167,7 @@ VALUES
 ('660e8400-e29b-41d4-a716-446655440010', 'Spa Gift Set', 'Luxury spa collection with bath bombs, oils, and candles', 124.99, 'Health & Beauty', ARRAY['spa', 'relaxation', 'beauty', 'self-care'], 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400', 'https://amazon.com/example-spa', NOW(), NOW()),
 ('660e8400-e29b-41d4-a716-446655440011', 'Bluetooth Speaker', 'Portable waterproof speaker with 360-degree sound', 89.99, 'Electronics', ARRAY['music', 'portable', 'wireless', 'outdoor'], 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400', 'https://amazon.com/example-speaker', NOW(), NOW()),
 ('660e8400-e29b-41d4-a716-446655440012', 'Wine Selection', 'Curated selection of 3 premium wines from renowned vineyards', 149.99, 'Food & Beverages', ARRAY['wine', 'alcohol', 'premium', 'celebration'], 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=400', 'https://amazon.com/example-wine', NOW(), NOW())
-ON CONFLICT (name) DO NOTHING;
+;
 
 -- Insert sample recipients for demo user
 INSERT INTO recipients (uuid, user_id, name, relationship, age, gender, created_at, updated_at)
@@ -189,7 +187,7 @@ FROM users u, (
     ('Mom', 'Mother', 58, 'Female')
 ) AS r(name, relationship, age, gender)
 WHERE u.email = 'demo@giftai.com'
-ON CONFLICT (user_id, name) DO NOTHING;
+;
 
 -- Insert sample preferences for demo recipients
 INSERT INTO preferences (uuid, recipient_id, category, preference_type, preference_value, confidence_score, source, created_at, updated_at)
