@@ -19,6 +19,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { hashPassword, comparePassword } from "./utils/password-utils";
 import { configurePassport } from "./config/passport";
 import { EmailService } from "./services/email-service";
+import "./types/session";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
@@ -26,13 +27,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use(
     session({
-      cookie: { maxAge: 86400000 }, // 24 hours
+      cookie: { 
+        maxAge: 86400000, // 24 hours
+        httpOnly: true,
+        secure: false, // Set to true in production with HTTPS
+        sameSite: 'lax'
+      },
       store: new MemoryStoreSession({
         checkPeriod: 86400000, // prune expired entries every 24h
       }),
-      resave: false,
-      saveUninitialized: false,
+      resave: true,
+      saveUninitialized: true,
       secret: process.env.SESSION_SECRET || "gift-ai-secret",
+      name: 'giftai.sid'
     })
   );
 
@@ -396,7 +403,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Manual session creation (bypassing passport)
       req.session.userId = user.id;
-      req.session.user = user;
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isVerified: user.isVerified
+      };
+      
+      // Force session save
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        } else {
+          console.log('✅ Session saved successfully for user:', user.id);
+        }
+      });
       
       console.log('✅ EMERGENCY LOGIN SUCCESS for user:', user.id);
       
@@ -532,12 +554,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session?.userId;
       const { recipientId, occasion, budget, category, mood } = req.body;
 
+      if (!userId) {
+        return res.status(401).json({ message: 'User authentication required' });
+      }
+
       if (!recipientId) {
         return res.status(400).json({ message: 'Recipient ID is required' });
       }
 
       const recommendationRequest = {
-        userId,
+        userId: userId,
         recipientId: parseInt(recipientId),
         occasion,
         budget: budget ? { min: budget.min || 0, max: budget.max || 1000 } : undefined,
@@ -561,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: recommendations.totalRecommendations
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating AI recommendations:', error);
       res.status(500).json({ 
         message: 'Failed to generate recommendations',
