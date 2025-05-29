@@ -5,31 +5,28 @@ import { z } from "zod";
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  uuid: uuid("uuid").notNull().defaultRandom(),
-  email: text("email").notNull().unique(), // Will be encrypted
-  password: text("password").notNull(),
-  firstName: varchar("first_name", { length: 100 }).notNull(), // Will be encrypted
-  lastName: varchar("last_name", { length: 100 }).notNull(), // Will be encrypted
-  role: varchar("role", { length: 20 }).default("user").notNull(),
-  phone: text("phone"), // Will be encrypted
-  address: text("address"), // Will be encrypted
+  uuid: varchar("uuid", { length: 255 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  role: varchar("role", { length: 50 }).default("user"),
+  phone: varchar("phone", { length: 20 }),
+  address: text("address"),
   
   // Social login providers
-  googleId: varchar("google_id", { length: 100 }),
-  facebookId: varchar("facebook_id", { length: 100 }),
-  appleId: varchar("apple_id", { length: 100 }),
+  googleId: varchar("google_id", { length: 255 }),
+  facebookId: varchar("facebook_id", { length: 255 }),
+  appleId: varchar("apple_id", { length: 255 }),
   
   // Profile data
-  profileImageUrl: text("profile_image_url"),
-  lastLogin: timestamp("last_login"),
   isVerified: boolean("is_verified").default(false),
-  verificationToken: text("verification_token"),
-  verificationCode: text("verification_code"),
-  resetPasswordToken: text("reset_password_token"),
+  verificationCode: varchar("verification_code", { length: 10 }),
+  resetPasswordToken: varchar("reset_password_token", { length: 255 }),
   resetPasswordExpires: timestamp("reset_password_expires"),
   
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 export const insertUserSchema = createInsertSchema(users)
@@ -41,17 +38,17 @@ export type User = typeof users.$inferSelect;
 // Recipients (friends/family) table
 export const recipients = pgTable("recipients", {
   id: serial("id").primaryKey(),
-  uuid: uuid("uuid").notNull().defaultRandom(),
+  uuid: varchar("uuid", { length: 255 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
   userId: integer("user_id").notNull().references(() => users.id),
-  name: varchar("name", { length: 100 }).notNull(),
-  relationship: varchar("relationship", { length: 50 }).notNull(),
+  relationship: varchar("relationship", { length: 100 }).notNull(),
   age: integer("age"),
   gender: varchar("gender", { length: 20 }),
   birthday: timestamp("birthday"),
-  photoUrl: text("photo_url"), // Optional photo of the recipient
+  photoUrl: text("photo_url"),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 export const insertRecipientSchema = createInsertSchema(recipients)
@@ -63,14 +60,14 @@ export type Recipient = typeof recipients.$inferSelect;
 // Preferences table
 export const preferences = pgTable("preferences", {
   id: serial("id").primaryKey(),
-  uuid: uuid("uuid").notNull().defaultRandom(),
+  uuid: varchar("uuid", { length: 255 }).notNull().unique(),
   recipientId: integer("recipient_id").notNull().references(() => recipients.id),
-  preferenceType: varchar("preference_type", { length: 50 }).notNull(),
+  preferenceType: varchar("preference_type", { length: 100 }).notNull(),
   preferenceValue: jsonb("preference_value").notNull(),
   category: varchar("category", { length: 100 }),
   importance: integer("importance"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 export const insertPreferenceSchema = createInsertSchema(preferences)
@@ -82,33 +79,25 @@ export type Preference = typeof preferences.$inferSelect;
 // Products table
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
-  uuid: uuid("uuid").notNull().defaultRandom(),
+  uuid: varchar("uuid", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }),
   description: text("description"),
   price: decimal("price", { precision: 10, scale: 2 }),
   imageUrl: text("image_url"),
-  purchaseUrl: text("purchase_url"),
   sourceUrl: text("source_url"),
-  currency: varchar("currency", { length: 3 }).default("USD"),
-  sourceSite: varchar("source_site", { length: 50 }),
-  
-  // Enhanced categorization fields
-  category: varchar("category", { length: 100 }),
-  categories: text("categories").array(), // Main product categories
-  occasions: text("occasions").array(), // Appropriate occasions (birthday, anniversary, etc.)
-  moods: text("moods").array(), // Gift moods (romantic, fun, thoughtful, etc.)
-  ageRanges: text("age_ranges").array(), // Appropriate age ranges
-  genders: text("genders").array(), // Appropriate genders
-  relationships: text("relationships").array(), // Appropriate relationship types
-  interests: text("interests").array(), // Related interests
-  tags: text("tags").array(), // General purpose tags
-  
-  // Additional metadata
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  sourceSite: varchar("source_site", { length: 100 }),
+  categories: text("categories").array(),
+  tags: text("tags").array(),
   metadata: jsonb("metadata"),
-  isActive: boolean("is_active").default(true),
+  availabilityStatus: varchar("availability_status", { length: 50 }).default("available"),
+  externalId: varchar("external_id", { length: 255 }),
+  externalUpdatedAt: timestamp("external_updated_at"),
   lastScrapedAt: timestamp("last_scraped_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 export const insertProductSchema = createInsertSchema(products)
@@ -120,18 +109,19 @@ export type Product = typeof products.$inferSelect;
 // Recommendations table
 export const recommendations = pgTable("recommendations", {
   id: serial("id").primaryKey(),
-  uuid: uuid("uuid").notNull().defaultRandom(),
+  uuid: varchar("uuid", { length: 255 }).notNull().unique(),
   userId: integer("user_id").notNull().references(() => users.id),
   recipientId: integer("recipient_id").notNull().references(() => recipients.id),
   productId: integer("product_id").notNull().references(() => products.id),
-  recommendationScore: decimal("recommendation_score", { precision: 4, scale: 2 }),
-  confidenceScore: decimal("confidence_score", { precision: 4, scale: 2 }),
+  status: varchar("status", { length: 50 }).default("pending"),
+  recommendationScore: decimal("recommendation_score", { precision: 3, scale: 2 }),
+  confidenceScore: decimal("confidence_score", { precision: 3, scale: 2 }),
   reasoning: text("reasoning"),
-  reasonText: text("reason_text"),
-  relationshipContext: varchar("relationship_context", { length: 50 }),
-  mood: varchar("mood", { length: 30 }),
-  status: varchar("status", { length: 20 }).notNull().default("new"),
-  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  occasion: varchar("occasion", { length: 100 }),
+  budgetMin: decimal("budget_min", { precision: 10, scale: 2 }),
+  budgetMax: decimal("budget_max", { precision: 10, scale: 2 }),
+  mood: varchar("mood", { length: 50 }),
+  generatedAt: timestamp("generated_at").defaultNow(),
   notifiedAt: timestamp("notified_at")
 });
 
@@ -144,14 +134,14 @@ export type Recommendation = typeof recommendations.$inferSelect;
 // Special dates/occasions table
 export const occasions = pgTable("occasions", {
   id: serial("id").primaryKey(),
-  uuid: uuid("uuid").notNull().defaultRandom(),
-  recipientId: integer("recipient_id").notNull().references(() => recipients.id),
-  name: varchar("name", { length: 100 }).notNull(),
+  uuid: varchar("uuid", { length: 255 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
   date: timestamp("date").notNull(),
-  isRecurring: boolean("is_recurring").notNull().default(false),
-  status: varchar("status", { length: 20 }).notNull().default("not_started"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  recipientId: integer("recipient_id").notNull().references(() => recipients.id),
+  status: varchar("status", { length: 50 }).default("upcoming"),
+  isRecurring: boolean("is_recurring").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 export const insertOccasionSchema = createInsertSchema(occasions)
