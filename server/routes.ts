@@ -13,30 +13,33 @@ import { feedbackController } from "./controllers/feedback-controller";
 import { isAdmin } from "./middleware/admin-auth";
 import { apiKeyAuth } from "./middleware/api-key-auth";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { hashPassword, comparePassword } from "./utils/password-utils";
 import { configurePassport } from "./config/passport";
 import { EmailService } from "./services/email-service";
+import { pool } from "./db";
 import "./types/session";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup memory session store
-  const MemoryStoreSession = MemoryStore(session);
+  // Setup PostgreSQL session store (AWS compatible)
+  const pgSession = connectPgSimple(session);
   
   // Trust proxy for proper session handling
   app.set('trust proxy', 1);
   
   app.use(
     session({
-      store: new MemoryStoreSession({
-        checkPeriod: 86400000,
+      store: new pgSession({
+        pool: pool,
+        tableName: 'session',
+        createTableIfMissing: true
       }),
       cookie: { 
         maxAge: 86400000, // 24 hours
         httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
       },
       resave: false,
