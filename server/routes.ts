@@ -7,6 +7,7 @@ import { recommendationController } from "./controllers/recommendation-controlle
 import { productController } from "./controllers/product-controller";
 import { hybridRecommendationController } from "./controllers/hybrid-recommendation-controller";
 import { relationshipGiftController } from "./controllers/relationship-gift-controller";
+import { recommendationEngine } from "./services/recommendation-engine";
 import { productScraperController } from "./controllers/product-scraper-controller";
 import { feedbackController } from "./controllers/feedback-controller";
 import { isAdmin } from "./middleware/admin-auth";
@@ -523,6 +524,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/content-recommendations", isAuthenticated, hybridRecommendationController.getContentBasedRecommendations);
   app.post("/api/product-tags/auto-generate", isAuthenticated, hybridRecommendationController.autoTagProducts);
   app.post("/api/user-similarities/update", isAuthenticated, hybridRecommendationController.updateUserSimilarities);
+
+  // OpenAI-powered recommendations with content & collaborative filtering
+  app.post("/api/recommendations/generate", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      const { recipientId, occasion, budget, category, mood } = req.body;
+
+      if (!recipientId) {
+        return res.status(400).json({ message: 'Recipient ID is required' });
+      }
+
+      const recommendationRequest = {
+        userId,
+        recipientId: parseInt(recipientId),
+        occasion,
+        budget: budget ? { min: budget.min || 0, max: budget.max || 1000 } : undefined,
+        category,
+        mood
+      };
+
+      const recommendations = await recommendationEngine.generateRecommendations(recommendationRequest);
+      
+      // Save recommendations to database
+      await recommendationEngine.saveRecommendations(
+        userId,
+        parseInt(recipientId),
+        recommendations.recommendations,
+        occasion
+      );
+
+      res.json({
+        success: true,
+        recommendations: recommendations.recommendations,
+        total: recommendations.totalRecommendations
+      });
+
+    } catch (error) {
+      console.error('Error generating AI recommendations:', error);
+      res.status(500).json({ 
+        message: 'Failed to generate recommendations',
+        error: error.message 
+      });
+    }
+  });
   
   // Product routes
   app.get("/api/products", isAuthenticated, productController.getProducts);
