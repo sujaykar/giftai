@@ -9,6 +9,7 @@ import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { HelpPage } from "./pages/HelpPage";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import HowItWorks from "./pages/how-it-works.tsx";
 
 function App() {
@@ -287,6 +288,10 @@ function App() {
       
       <Route path="/privacy">
         <Privacy />
+      </Route>
+      
+      <Route path="/terms">
+        <Terms />
       </Route>
       
       {/* Standalone How It Works page for new user onboarding */}
