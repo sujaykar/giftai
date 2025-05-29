@@ -13,28 +13,25 @@ import { feedbackController } from "./controllers/feedback-controller";
 import { isAdmin } from "./middleware/admin-auth";
 import { apiKeyAuth } from "./middleware/api-key-auth";
 import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
+import MemoryStore from "memorystore";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { hashPassword, comparePassword } from "./utils/password-utils";
 import { configurePassport } from "./config/passport";
 import { EmailService } from "./services/email-service";
-import { pool } from "./db";
 import "./types/session";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup PostgreSQL session store
-  const pgSession = connectPgSimple(session);
+  // Setup memory session store
+  const MemoryStoreSession = MemoryStore(session);
   
   // Trust proxy for proper session handling
   app.set('trust proxy', 1);
   
   app.use(
     session({
-      store: new pgSession({
-        conString: process.env.DATABASE_URL,
-        tableName: 'session',
-        createTableIfMissing: true
+      store: new MemoryStoreSession({
+        checkPeriod: 86400000,
       }),
       cookie: { 
         maxAge: 86400000, // 24 hours
