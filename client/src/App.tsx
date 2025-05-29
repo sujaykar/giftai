@@ -185,7 +185,8 @@ function App() {
       });
       setUser(null);
       setShowLoginForm(false);
-      setLocation("/");
+      // Force navigation to home page after logout
+      window.location.href = "/";
     } catch (error) {
       console.error('Logout error:', error);
     }
