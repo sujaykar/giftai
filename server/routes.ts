@@ -47,7 +47,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: any) => {
-    if (req.isAuthenticated()) {
+    // Check both passport authentication and manual session
+    if (req.isAuthenticated() || req.session?.userId) {
       return next();
     }
     return res.status(401).json({ message: "Unauthorized" });

@@ -1,5 +1,5 @@
 // Simple test to verify OpenAI recommendation API endpoint
-const axios = require('axios');
+import axios from 'axios';
 
 async function testRecommendationAPI() {
   console.log('Testing OpenAI-powered recommendation API...');
