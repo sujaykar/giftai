@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import { Sparkles, Eye, EyeOff } from "lucide-react";
 import { Route, Switch, useLocation } from "wouter";
 import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 import { RecipientQuiz } from "./components/RecipientQuiz";
 import { RecipientsPage } from "./pages/RecipientsPage";
+import { AboutPage } from "./pages/AboutPage";
+import { ContactPage } from "./pages/ContactPage";
+import { HelpPage } from "./pages/HelpPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 import HowItWorks from "./pages/how-it-works.tsx";
 
 function App() {
@@ -267,6 +272,23 @@ function App() {
   // For non-logged in users (new user onboarding experience)
   return (
     <Switch>
+      {/* Standard website pages */}
+      <Route path="/about">
+        <AboutPage />
+      </Route>
+      
+      <Route path="/contact">
+        <ContactPage />
+      </Route>
+      
+      <Route path="/help">
+        <HelpPage />
+      </Route>
+      
+      <Route path="/privacy">
+        <PrivacyPage />
+      </Route>
+      
       {/* Standalone How It Works page for new user onboarding */}
       <Route path="/how-it-works">
         <HowItWorks />
@@ -625,16 +647,7 @@ function App() {
             </div>
           </section>
 
-          {/* Footer */}
-          <footer className="bg-gray-900 text-white py-8">
-            <div className="container mx-auto px-6 text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Sparkles className="h-6 w-6 text-pink-400" />
-                <span className="text-xl font-bold">GIFT AI</span>
-              </div>
-              <p className="text-gray-400">© 2025 GIFT AI. All rights reserved.</p>
-            </div>
-          </footer>
+          <Footer />
         </div>
       </Route>
     </Switch>
