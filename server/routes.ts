@@ -32,8 +32,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       store: new pgSession({
-        pool: pool,
-        tableName: 'sessions',
+        conString: process.env.DATABASE_URL,
+        tableName: 'session',
         createTableIfMissing: true
       }),
       cookie: { 
@@ -44,8 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       },
       resave: false,
       saveUninitialized: false,
-      secret: process.env.SESSION_SECRET || "gift-ai-secret-key-for-sessions",
-      name: 'connect.sid'
+      secret: process.env.SESSION_SECRET || "gift-ai-secret-key-for-sessions"
     })
   );
 
