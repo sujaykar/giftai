@@ -110,7 +110,7 @@ async function setupProductionData() {
       if (existingUser.rows.length === 0) {
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         const userResult = await client.query(
-          `INSERT INTO users (uuid, email, password, "firstName", "lastName", "isVerified", "createdAt", "updatedAt")
+          `INSERT INTO users (uuid, email, password, first_name, last_name, is_verified, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id, email`,
           [
             uuidv4(),
@@ -264,8 +264,8 @@ async function setupProductionData() {
 
       if (existingProduct.rows.length === 0) {
         await client.query(
-          `INSERT INTO products (uuid, name, description, price, category, tags, "imageUrl", "amazonUrl", rating, "createdAt", "updatedAt")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())`,
+          `INSERT INTO products (uuid, name, description, price, category, tags, image_url, source_url, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
           [
             uuidv4(),
             product.name,
@@ -274,8 +274,7 @@ async function setupProductionData() {
             product.category,
             product.tags,
             product.imageUrl,
-            product.amazonUrl,
-            product.rating
+            product.amazonUrl
           ]
         );
         console.log(`✅ Created product: ${product.name}`);
@@ -315,22 +314,21 @@ async function setupProductionData() {
 
       for (const recipient of recipients) {
         const existingRecipient = await client.query(
-          'SELECT id FROM recipients WHERE "userId" = $1 AND name = $2',
+          'SELECT id FROM recipients WHERE user_id = $1 AND name = $2',
           [demoUser.id, recipient.name]
         );
 
         if (existingRecipient.rows.length === 0) {
           await client.query(
-            `INSERT INTO recipients (uuid, "userId", name, relationship, age, gender, interests, "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
+            `INSERT INTO recipients (uuid, user_id, name, relationship, age, gender, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
             [
               uuidv4(),
               demoUser.id,
               recipient.name,
               recipient.relationship,
               recipient.age,
-              recipient.gender,
-              recipient.interests
+              recipient.gender
             ]
           );
           console.log(`✅ Created recipient: ${recipient.name}`);
