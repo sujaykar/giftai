@@ -13,36 +13,39 @@ import { feedbackController } from "./controllers/feedback-controller";
 import { isAdmin } from "./middleware/admin-auth";
 import { apiKeyAuth } from "./middleware/api-key-auth";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { hashPassword, comparePassword } from "./utils/password-utils";
 import { configurePassport } from "./config/passport";
 import { EmailService } from "./services/email-service";
+import { pool } from "./db";
 import "./types/session";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup session store
-  const MemoryStoreSession = MemoryStore(session);
+  // Setup PostgreSQL session store
+  const pgSession = connectPgSimple(session);
   
   // Trust proxy for proper session handling
   app.set('trust proxy', 1);
   
   app.use(
     session({
+      store: new pgSession({
+        pool: pool,
+        tableName: 'sessions',
+        createTableIfMissing: true
+      }),
       cookie: { 
         maxAge: 86400000, // 24 hours
         httpOnly: true,
         secure: false, // Set to true in production with HTTPS
         sameSite: 'lax'
       },
-      store: new MemoryStoreSession({
-        checkPeriod: 86400000, // prune expired entries every 24h
-      }),
       resave: false,
       saveUninitialized: false,
       secret: process.env.SESSION_SECRET || "gift-ai-secret-key-for-sessions",
-      name: 'sessionId'
+      name: 'connect.sid'
     })
   );
 
@@ -601,6 +604,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error generating AI recommendations:', error);
       res.status(500).json({ 
         message: 'Failed to generate recommendations',
+        error: error.message 
+      });
+    }
+  });
+
+  // Get historical recommendations for user
+  app.get("/api/recommendations/history", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'User authentication required' });
+      }
+
+      const recommendations = await storage.getRecommendationsWithProducts(userId);
+      
+      res.json({
+        success: true,
+        recommendations: recommendations,
+        total: recommendations.length
+      });
+
+    } catch (error: any) {
+      console.error('Error fetching recommendation history:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch recommendation history',
         error: error.message 
       });
     }
