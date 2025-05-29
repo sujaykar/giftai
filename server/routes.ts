@@ -25,22 +25,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
   const MemoryStoreSession = MemoryStore(session);
   
+  // Trust proxy for proper session handling
+  app.set('trust proxy', 1);
+  
   app.use(
     session({
       cookie: { 
         maxAge: 86400000, // 24 hours
-        httpOnly: false, // Allow client-side access for debugging
+        httpOnly: true,
         secure: false, // Set to true in production with HTTPS
-        sameSite: false // More permissive for development
+        sameSite: 'lax'
       },
       store: new MemoryStoreSession({
         checkPeriod: 86400000, // prune expired entries every 24h
       }),
-      resave: true,
-      saveUninitialized: true,
-      secret: process.env.SESSION_SECRET || "gift-ai-secret",
-      name: 'connect.sid',
-      rolling: true
+      resave: false,
+      saveUninitialized: false,
+      secret: process.env.SESSION_SECRET || "gift-ai-secret-key-for-sessions",
+      name: 'sessionId'
     })
   );
 
