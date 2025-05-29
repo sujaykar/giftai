@@ -96,12 +96,24 @@ export const configurePassport = () => {
 
   // Google OAuth Strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Determine the correct callback URL based on environment
+    const getCallbackURL = () => {
+      if (process.env.NODE_ENV === 'production') {
+        return 'https://giftsai.com/api/auth/google/callback';
+      }
+      // For development/Replit
+      const replitUrl = process.env.REPL_SLUG ? 
+        `https://${process.env.REPL_ID}.${process.env.REPL_OWNER}.replit.dev` : 
+        `https://bb13f5fc-76f5-4b4d-a7b3-c26ee8c2d986-00-14rte096i4z9p.worf.replit.dev`;
+      return `${replitUrl}/api/auth/google/callback`;
+    };
+
     passport.use(
       new GoogleStrategy(
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: '/api/auth/google/callback',
+          callbackURL: getCallbackURL(),
           scope: ['profile', 'email']
         },
         async (accessToken, refreshToken, profile, done) => {
