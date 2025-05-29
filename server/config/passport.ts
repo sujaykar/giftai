@@ -101,8 +101,8 @@ export const configurePassport = () => {
       if (process.env.NODE_ENV === 'production') {
         return 'https://giftsai.com/api/auth/google/callback';
       }
-      // For development/Replit - use the exact URL from Google Cloud Console
-      return 'https://bb13f5fc-76f5-4b4d-a7b3-c26ee8c2d986-00-14rte096i4z9p.worf.replit.dev/api/auth/google/callback';
+      // For development environments
+      return process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback';
     };
 
     passport.use(
