@@ -65,66 +65,64 @@ WHERE u.email LIKE '%@example.com'
 LIMIT 30; -- Distribute recipients across test users
 
 -- Add preferences for recipients
-INSERT INTO preferences (uuid, recipient_id, category, preference_type, preference_value, confidence_score, source, created_at, updated_at)
+INSERT INTO preferences (uuid, recipient_id, category, preference_type, preference_value, importance, created_at, updated_at)
 SELECT 
     gen_random_uuid(),
     r.id,
     p.category,
     p.preference_type,
-    p.preference_value,
-    p.confidence_score,
-    p.source,
+    p.preference_value::jsonb,
+    p.importance,
     NOW(),
     NOW()
 FROM recipients r 
 CROSS JOIN (
     VALUES 
-    ('Electronics', 'interest', 'technology', 0.9, 'user_input'),
-    ('Fashion & Accessories', 'style', 'modern', 0.8, 'user_input'),
-    ('Health & Beauty', 'activity', 'fitness', 0.85, 'user_input'),
-    ('Food & Beverages', 'taste', 'gourmet', 0.7, 'user_input'),
-    ('Books & Media', 'interest', 'mystery novels', 0.9, 'user_input'),
-    ('Home & Garden', 'hobby', 'decorating', 0.8, 'user_input'),
-    ('Sports & Outdoors', 'activity', 'hiking', 0.85, 'user_input'),
-    ('Electronics', 'interest', 'gaming', 0.75, 'user_input'),
-    ('Fashion & Accessories', 'preference', 'jewelry', 0.8, 'user_input'),
-    ('Health & Beauty', 'routine', 'skincare', 0.9, 'user_input')
-) AS p(category, preference_type, preference_value, confidence_score, source)
+    ('Electronics', 'interest', '{"value": "technology", "source": "user_input"}', 9),
+    ('Fashion & Accessories', 'style', '{"value": "modern", "source": "user_input"}', 8),
+    ('Health & Beauty', 'activity', '{"value": "fitness", "source": "user_input"}', 8),
+    ('Food & Beverages', 'taste', '{"value": "gourmet", "source": "user_input"}', 7),
+    ('Books & Media', 'interest', '{"value": "mystery novels", "source": "user_input"}', 9),
+    ('Home & Garden', 'hobby', '{"value": "decorating", "source": "user_input"}', 8),
+    ('Sports & Outdoors', 'activity', '{"value": "hiking", "source": "user_input"}', 8),
+    ('Electronics', 'interest', '{"value": "gaming", "source": "user_input"}', 7),
+    ('Fashion & Accessories', 'preference', '{"value": "jewelry", "source": "user_input"}', 8),
+    ('Health & Beauty', 'routine', '{"value": "skincare", "source": "user_input"}', 9)
+) AS p(category, preference_type, preference_value, importance)
 WHERE r.id IN (SELECT id FROM recipients LIMIT 20); -- Add to first 20 recipients
 
 -- Add occasions for recipients
-INSERT INTO occasions (uuid, recipient_id, name, occasion_type, date, budget_min, budget_max, priority, created_at, updated_at)
+INSERT INTO occasions (uuid, recipient_id, name, date, status, is_recurring, created_at, updated_at)
 SELECT 
     gen_random_uuid(),
     r.id,
     o.name,
-    o.occasion_type,
-    o.date::DATE,
-    o.budget_min,
-    o.budget_max,
-    o.priority,
+    o.date::TIMESTAMP,
+    o.status,
+    o.is_recurring,
     NOW(),
     NOW()
 FROM recipients r 
 CROSS JOIN (
     VALUES 
-    ('Birthday 2024', 'birthday', '2024-09-15', 75.00, 200.00, 'high'),
-    ('Anniversary Gift', 'anniversary', '2024-10-20', 100.00, 300.00, 'high'),
-    ('Graduation Gift', 'graduation', '2024-06-15', 50.00, 150.00, 'medium'),
-    ('Holiday Present', 'holiday', '2024-12-25', 40.00, 120.00, 'medium'),
-    ('Housewarming Gift', 'housewarming', '2024-07-30', 30.00, 100.00, 'low'),
-    ('Thank You Gift', 'appreciation', '2024-08-10', 25.00, 75.00, 'low')
-) AS o(name, occasion_type, date, budget_min, budget_max, priority)
+    ('Birthday 2024', '2024-09-15 00:00:00', 'upcoming', false),
+    ('Anniversary Gift', '2024-10-20 00:00:00', 'upcoming', true),
+    ('Graduation Gift', '2024-06-15 00:00:00', 'upcoming', false),
+    ('Holiday Present', '2024-12-25 00:00:00', 'upcoming', true),
+    ('Housewarming Gift', '2024-07-30 00:00:00', 'upcoming', false),
+    ('Thank You Gift', '2024-08-10 00:00:00', 'upcoming', false)
+) AS o(name, date, status, is_recurring)
 WHERE r.id IN (SELECT id FROM recipients LIMIT 15); -- Add to first 15 recipients
 
 -- Generate AI recommendations for users
-INSERT INTO recommendations (uuid, user_id, recipient_id, product_id, occasion_id, confidence_score, reasoning, ai_model_version, price_at_recommendation, status, created_at, updated_at)
+INSERT INTO recommendations (uuid, user_id, recipient_id, product_id, status, recommendation_score, confidence_score, reasoning, occasion, budget_min, budget_max, mood, generated_at)
 SELECT 
     gen_random_uuid(),
     u.id,
     r.id,
     p.id,
-    o.id,
+    'pending',
+    (RANDOM() * 0.3 + 0.7)::DECIMAL(3,2), -- Random recommendation score between 0.7-1.0
     (RANDOM() * 0.3 + 0.7)::DECIMAL(3,2), -- Random confidence between 0.7-1.0
     CASE 
         WHEN p.category = 'Electronics' THEN 'Perfect for tech enthusiasts. This product matches their interest in modern technology and fits within the specified budget range.'
@@ -136,27 +134,36 @@ SELECT
         WHEN p.category = 'Sports & Outdoors' THEN 'Perfect for active individuals who love outdoor adventures. High-quality gear that enhances their outdoor experiences.'
         ELSE 'Thoughtfully selected based on their preferences and interests. This gift shows care and consideration for what they truly enjoy.'
     END,
-    'claude-3.5-sonnet',
-    p.price,
-    'active',
-    NOW(),
+    CASE (RANDOM() * 6)::INTEGER
+        WHEN 0 THEN 'birthday'
+        WHEN 1 THEN 'anniversary' 
+        WHEN 2 THEN 'holiday'
+        WHEN 3 THEN 'graduation'
+        WHEN 4 THEN 'appreciation'
+        ELSE 'general'
+    END,
+    50.00,
+    300.00,
+    CASE (RANDOM() * 4)::INTEGER
+        WHEN 0 THEN 'thoughtful'
+        WHEN 1 THEN 'fun'
+        WHEN 2 THEN 'practical'
+        ELSE 'luxurious'
+    END,
     NOW()
 FROM users u
 CROSS JOIN recipients r
 CROSS JOIN products p
-CROSS JOIN occasions o
 WHERE u.id = r.user_id 
-  AND r.id = o.recipient_id
-  AND p.price BETWEEN o.budget_min AND o.budget_max
-  AND RANDOM() < 0.3 -- Only create recommendations for 30% of possible combinations
-LIMIT 100; -- Limit to 100 recommendations total
+  AND RANDOM() < 0.2 -- Only create recommendations for 20% of possible combinations
+LIMIT 80; -- Limit to 80 recommendations total
 
--- Add some user feedback to recommendations
+-- Update some recommendations status based on user engagement
 UPDATE recommendations 
-SET user_feedback = CASE 
-    WHEN RANDOM() < 0.3 THEN 'liked'
+SET status = CASE 
+    WHEN RANDOM() < 0.3 THEN 'viewed'
     WHEN RANDOM() < 0.6 THEN 'saved'
-    ELSE NULL
+    ELSE 'pending'
 END
 WHERE id IN (SELECT id FROM recommendations ORDER BY RANDOM() LIMIT 50);
 
