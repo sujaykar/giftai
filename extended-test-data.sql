@@ -1,9 +1,6 @@
 -- Extended Test Data for GIFT AI Database
 -- Run this after the main database setup script
 
--- Enable UUID extension if not already enabled
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Insert additional products (20+ total products)
 INSERT INTO products (uuid, name, description, price, category, tags, image_url, source_url, created_at, updated_at)
 VALUES 
@@ -46,7 +43,7 @@ VALUES
 -- Add more recipients for test users
 INSERT INTO recipients (uuid, user_id, name, relationship, age, gender, created_at, updated_at)
 SELECT 
-    uuid_generate_v4(), 
+    gen_random_uuid(), 
     u.id, 
     r.name, 
     r.relationship, 
@@ -70,7 +67,7 @@ LIMIT 30; -- Distribute recipients across test users
 -- Add preferences for recipients
 INSERT INTO preferences (uuid, recipient_id, category, preference_type, preference_value, confidence_score, source, created_at, updated_at)
 SELECT 
-    uuid_generate_v4(),
+    gen_random_uuid(),
     r.id,
     p.category,
     p.preference_type,
@@ -98,7 +95,7 @@ WHERE r.id IN (SELECT id FROM recipients LIMIT 20); -- Add to first 20 recipient
 -- Add occasions for recipients
 INSERT INTO occasions (uuid, recipient_id, name, occasion_type, date, budget_min, budget_max, priority, created_at, updated_at)
 SELECT 
-    uuid_generate_v4(),
+    gen_random_uuid(),
     r.id,
     o.name,
     o.occasion_type,
@@ -123,7 +120,7 @@ WHERE r.id IN (SELECT id FROM recipients LIMIT 15); -- Add to first 15 recipient
 -- Generate AI recommendations for users
 INSERT INTO recommendations (uuid, user_id, recipient_id, product_id, occasion_id, confidence_score, reasoning, ai_model_version, price_at_recommendation, status, created_at, updated_at)
 SELECT 
-    uuid_generate_v4(),
+    gen_random_uuid(),
     u.id,
     r.id,
     p.id,
