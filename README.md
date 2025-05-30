@@ -6,6 +6,11 @@
 
 GIFT AI is a cutting-edge gift recommendation platform that leverages artificial intelligence to transform gift selection through intelligent matching and personalized suggestions. The platform combines advanced machine learning algorithms, collaborative filtering, and AI-powered relationship analysis to provide thoughtful, personalized gift recommendations.
 
+**Live Application:** https://giftsai.com  
+**Status:** Production Ready - Deployed on AWS Amplify  
+**Backend:** AWS Lambda + API Gateway + PostgreSQL  
+**AI Engine:** OpenAI GPT-4o
+
 ## 🏗️ Architecture Overview
 
 ```

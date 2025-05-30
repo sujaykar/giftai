@@ -1,50 +1,61 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# testing
-/coverage
-
-# production
-/build
-/dist
-/client/dist
-/server/dist
-
-# misc
-.DS_Store
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.production
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# IDE
-.vscode
-.idea
-
-# Amplify
-amplify/\#current-cloud-backend
-amplify/.config/local-*
-amplify/logs
-amplify/mock-data
-amplify/backend/amplify-meta.json
-amplify/backend/awscloudformation
-amplify/backend/.temp
-build/
+# Build outputs
 dist/
-node_modules/
-aws-exports.js
-awsconfiguration.json
-amplifyconfiguration.json
-amplifyconfiguration.dart
-amplify-build-config.json
-amplify-gradle-config.json
-amplifytools.xcconfig
-.secret-*
+build/
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# AWS deployment files (keep as reference but don't track changes)
+# These should be documented in README instead
+
+# Database files (if any)
+*.sqlite
+*.db
+
+# Attached assets folder (contains temporary files and images)
+attached_assets/
+
+# Lambda deployment files
+lambda-giftai-*.js
+
+# Test data files
+extended-test-data.sql
+complete-database-setup.sql
+
+# Generated files
+generated-icon.png
