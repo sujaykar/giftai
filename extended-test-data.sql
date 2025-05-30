@@ -1,6 +1,9 @@
 -- Extended Test Data for GIFT AI Database
 -- Run this after the main database setup script
 
+-- Enable UUID extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Insert additional products (20+ total products)
 INSERT INTO products (uuid, name, description, price, category, tags, image_url, source_url, created_at, updated_at)
 VALUES 
