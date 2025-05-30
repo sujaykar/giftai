@@ -182,13 +182,13 @@ SELECT
     r.name as recipient_name,
     p.name as product_name,
     p.price,
-    o.name as occasion_name,
+    rec.occasion as occasion_type,
     rec.confidence_score,
-    rec.user_feedback
+    rec.status,
+    rec.mood
 FROM recommendations rec
 JOIN users u ON rec.user_id = u.id
 JOIN recipients r ON rec.recipient_id = r.id
 JOIN products p ON rec.product_id = p.id
-JOIN occasions o ON rec.occasion_id = o.id
-ORDER BY rec.created_at DESC
+ORDER BY rec.generated_at DESC
 LIMIT 10;
